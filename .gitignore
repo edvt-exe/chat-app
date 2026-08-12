@@ -6,3 +6,8 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 *.log
 .DS_Store
+backend/.agents/
+backend/.claude/
+backend/.windsurf/
+backend/skills-lock.json
+backend/prisma.config.ts
