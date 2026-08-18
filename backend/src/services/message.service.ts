@@ -32,3 +32,26 @@ export async function getConversationMessages(conversationId: string, limit = 50
     },
   });
 }
+
+export async function saveFileMessage(
+  senderId: string,
+  conversationId: string,
+  fileUrl: string,
+  fileName: string,
+  fileSize: number,
+  messageType: string
+) {
+  return prisma.message.create({
+    data: {
+      conversationId,
+      senderId,
+      messageType: messageType as any,
+      fileUrl,
+      fileName,
+      fileSize,
+    },
+    include: {
+      sender: { select: { id: true, username: true, avatarUrl: true } },
+    },
+  });
+}

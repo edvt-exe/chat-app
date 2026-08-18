@@ -1,10 +1,12 @@
 import express from 'express';
 import { createServer } from 'http';
+import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
+import uploadRoutes from './routes/upload.routes';
 import { initSocketServer } from './sockets';
 
 dotenv.config();
@@ -13,9 +15,11 @@ const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT || 3000;
 
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors());
 app.use(express.json());
+
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -24,6 +28,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
 
 initSocketServer(httpServer);
 

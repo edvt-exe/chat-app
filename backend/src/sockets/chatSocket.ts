@@ -6,7 +6,7 @@ import {
   findOrCreateDirectConversation,
   isUserInConversation,
 } from '../services/conversation.service';
-import { saveMessage, getConversationMessages } from '../services/message.service';
+import { saveMessage, saveFileMessage, getConversationMessages } from '../services/message.service';
 
 export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
   const userId = socket.userId!;
@@ -28,7 +28,6 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
       const conversation = await findOrCreateDirectConversation(userId, targetUserId);
       socket.join(conversation.id);
 
-      // baga si celalalt user in camera, daca e conectat
       const targetSockets = await io.fetchSockets();
       targetSockets.forEach((s) => {
         if ((s as unknown as AuthenticatedSocket).userId === targetUserId) {
@@ -54,11 +53,25 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
 
     try {
       const message = await saveMessage(userId, { conversationId, content: content.trim() });
-
       io.to(conversationId).emit('message:new', message);
       callback?.({ success: true, message });
     } catch (err) {
       callback?.({ success: false, error: 'Failed to send message' });
+    }
+  });
+
+  socket.on('message:sendFile', async ({ conversationId, fileUrl, fileName, fileSize, messageType }, callback) => {
+    const allowed = await isUserInConversation(userId, conversationId);
+    if (!allowed) {
+      return callback?.({ success: false, error: 'Not a participant of this conversation' });
+    }
+
+    try {
+      const message = await saveFileMessage(userId, conversationId, fileUrl, fileName, fileSize, messageType);
+      io.to(conversationId).emit('message:new', message);
+      callback?.({ success: true, message });
+    } catch (err) {
+      callback?.({ success: false, error: 'Failed to send file message' });
     }
   });
 
