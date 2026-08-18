@@ -7,6 +7,7 @@ import {
   isUserInConversation,
 } from '../services/conversation.service';
 import { saveMessage, saveFileMessage, getConversationMessages } from '../services/message.service';
+import { toggleReaction } from '../services/reaction.service';
 
 export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
   const userId = socket.userId!;
@@ -36,7 +37,7 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
       });
 
       callback({ success: true, conversation });
-    } catch (err) {
+    } catch {
       callback({ success: false, error: 'Could not start conversation' });
     }
   });
@@ -55,7 +56,7 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
       const message = await saveMessage(userId, { conversationId, content: content.trim() });
       io.to(conversationId).emit('message:new', message);
       callback?.({ success: true, message });
-    } catch (err) {
+    } catch {
       callback?.({ success: false, error: 'Failed to send message' });
     }
   });
@@ -70,7 +71,7 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
       const message = await saveFileMessage(userId, conversationId, fileUrl, fileName, fileSize, messageType);
       io.to(conversationId).emit('message:new', message);
       callback?.({ success: true, message });
-    } catch (err) {
+    } catch {
       callback?.({ success: false, error: 'Failed to send file message' });
     }
   });
@@ -83,6 +84,34 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
 
     const messages = await getConversationMessages(conversationId);
     callback?.({ success: true, messages: messages.reverse() });
+  });
+
+  socket.on('reaction:toggle', async ({ messageId, emoji }, callback) => {
+    if (!emoji || !messageId) {
+      return callback?.({ success: false, error: 'Missing messageId or emoji' });
+    }
+
+    try {
+      const message = await prisma.message.findUnique({
+        where: { id: messageId },
+        select: { conversationId: true },
+      });
+
+      if (!message) {
+        return callback?.({ success: false, error: 'Message not found' });
+      }
+
+      const allowed = await isUserInConversation(userId, message.conversationId);
+      if (!allowed) {
+        return callback?.({ success: false, error: 'Not a participant of this conversation' });
+      }
+
+      const reactions = await toggleReaction(userId, messageId, emoji);
+      io.to(message.conversationId).emit('reaction:updated', { messageId, reactions });
+      callback?.({ success: true, reactions });
+    } catch {
+      callback?.({ success: false, error: 'Failed to toggle reaction' });
+    }
   });
 
   socket.on('disconnect', async () => {
