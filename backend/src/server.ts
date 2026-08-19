@@ -7,7 +7,9 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import uploadRoutes from './routes/upload.routes';
+import storyRoutes from './routes/story.routes';
 import { initSocketServer } from './sockets';
+import { startCleanupJob } from './jobs/cleanupStories';
 
 dotenv.config();
 
@@ -29,8 +31,10 @@ app.use('/api', limiter);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/stories', storyRoutes);
 
 initSocketServer(httpServer);
+startCleanupJob();
 
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
