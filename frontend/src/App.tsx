@@ -1,16 +1,10 @@
-import { useAuth, AuthProvider } from './contexts/AuthContext.tsx';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthPage from './components/auth/AuthPage';
+import MainLayout from './components/layout/MainLayout';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) return <AuthPage />;
-
-  return (
-    <div className="min-h-screen bg-bg-primary text-white flex items-center justify-center">
-      <p className="text-gray-400">Chat coming soon...</p>
-    </div>
-  );
+  return isAuthenticated ? <MainLayout /> : <AuthPage />;
 }
 
 export default function App() {
