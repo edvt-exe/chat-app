@@ -2,16 +2,65 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 
+interface PasswordStrength {
+  hasUpper: boolean;
+  hasLower: boolean;
+  hasNumber: boolean;
+  hasSpecial: boolean;
+  hasLength: boolean;
+}
+
+function checkPassword(pwd: string): PasswordStrength {
+  return {
+    hasUpper: /[A-Z]/.test(pwd),
+    hasLower: /[a-z]/.test(pwd),
+    hasNumber: /[0-9]/.test(pwd),
+    hasSpecial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd),
+    hasLength: pwd.length >= 8,
+  };
+}
+
+function StrengthRow({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span style={{ color: ok ? '#22d46a' : 'rgba(255,255,255,0.25)', fontSize: 12 }}>
+        {ok ? '✓' : '○'}
+      </span>
+      <span style={{ fontSize: 11, color: ok ? 'rgba(34,212,106,0.8)' : 'rgba(255,255,255,0.3)' }}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
 export default function AuthPage() {
   const { login } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [form, setForm] = useState({ username: '', email: '', password: '', identifier: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showStrength, setShowStrength] = useState(false);
+
+  const strength = checkPassword(form.password);
+  const passwordValid = Object.values(strength).every(Boolean);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+
+    if (mode === 'register') {
+      if (!passwordValid) {
+        setError('Password does not meet all requirements');
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email)) {
+        setError('Please enter a valid email address');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -36,8 +85,24 @@ export default function AuthPage() {
     }
   }
 
+  const inputStyle = {
+    background: 'rgba(0,0,0,0.3)',
+    border: '1px solid rgba(0,200,255,0.15)',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: 11,
+    fontWeight: 500,
+    marginBottom: 6,
+    color: 'rgba(0,200,255,0.6)',
+  };
+
+  const inputClass = "w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-colors";
+
   return (
-    <div className="min-h-screen bg-navy-950 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+      style={{ background: '#060b14' }}>
       <div className="absolute top-[-100px] left-[10%] w-[400px] h-[400px] rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(0,200,255,0.12) 0%, transparent 70%)' }} />
       <div className="absolute bottom-[-80px] right-[15%] w-[300px] h-[300px] rounded-full pointer-events-none"
@@ -46,71 +111,55 @@ export default function AuthPage() {
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-            Nexus<span className="text-cyan-DEFAULT">Chat</span>
+            Nexus<span style={{ color: '#00c8ff' }}>Chat</span>
           </h1>
           <p className="text-sm" style={{ color: 'rgba(0,200,255,0.5)' }}>
             Real-time messaging, reimagined
           </p>
         </div>
 
-        <div className="glass rounded-2xl p-8">
+        <div className="rounded-2xl p-8" style={{ background: 'rgba(255,255,255,0.04)', backdropFilter: 'blur(20px)', border: '1px solid rgba(0,200,255,0.12)' }}>
           <div className="flex mb-6 p-1 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)' }}>
-            <button
-              onClick={() => setMode('login')}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                mode === 'login'
-                  ? 'bg-send-btn text-white'
-                  : 'text-white/40 hover:text-white/70'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => setMode('register')}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                mode === 'register'
-                  ? 'bg-send-btn text-white'
-                  : 'text-white/40 hover:text-white/70'
-              }`}
-            >
-              Create Account
-            </button>
+            {(['login', 'register'] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => { setMode(m); setError(''); }}
+                className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: mode === m ? 'linear-gradient(135deg, #0096ff, #00c8ff)' : 'transparent',
+                  color: mode === m ? 'white' : 'rgba(255,255,255,0.4)',
+                }}
+              >
+                {m === 'login' ? 'Sign In' : 'Create Account'}
+              </button>
+            ))}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
               <>
                 <div>
-                  <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(0,200,255,0.6)' }}>
-                    Username
-                  </label>
+                  <label style={labelStyle}>Username</label>
                   <input
                     type="text"
                     value={form.username}
                     onChange={(e) => setForm({ ...form, username: e.target.value })}
                     placeholder="yourname"
-                    className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-colors"
-                    style={{
-                      background: 'rgba(0,0,0,0.3)',
-                      border: '1px solid rgba(0,200,255,0.15)',
-                    }}
+                    className={inputClass}
+                    style={inputStyle}
                     required
+                    minLength={3}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(0,200,255,0.6)' }}>
-                    Email
-                  </label>
+                  <label style={labelStyle}>Email</label>
                   <input
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     placeholder="you@example.com"
-                    className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-colors"
-                    style={{
-                      background: 'rgba(0,0,0,0.3)',
-                      border: '1px solid rgba(0,200,255,0.15)',
-                    }}
+                    className={inputClass}
+                    style={inputStyle}
                     required
                   />
                 </div>
@@ -119,53 +168,56 @@ export default function AuthPage() {
 
             {mode === 'login' && (
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(0,200,255,0.6)' }}>
-                  Username or Email
-                </label>
+                <label style={labelStyle}>Username or Email</label>
                 <input
                   type="text"
                   value={form.identifier}
                   onChange={(e) => setForm({ ...form, identifier: e.target.value })}
                   placeholder="yourname or you@example.com"
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-colors"
-                  style={{
-                    background: 'rgba(0,0,0,0.3)',
-                    border: '1px solid rgba(0,200,255,0.15)',
-                  }}
+                  className={inputClass}
+                  style={inputStyle}
                   required
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(0,200,255,0.6)' }}>
-                Password
-              </label>
+              <label style={labelStyle}>Password</label>
               <input
                 type="password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
+                onFocus={() => mode === 'register' && setShowStrength(true)}
                 placeholder="••••••••"
-                className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-colors"
-                style={{
-                  background: 'rgba(0,0,0,0.3)',
-                  border: '1px solid rgba(0,200,255,0.15)',
-                }}
+                className={inputClass}
+                style={inputStyle}
                 required
               />
+
+              {mode === 'register' && showStrength && (
+                <div className="mt-2 p-3 rounded-xl space-y-1"
+                  style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0,200,255,0.1)' }}>
+                  <StrengthRow ok={strength.hasLength} label="At least 8 characters" />
+                  <StrengthRow ok={strength.hasUpper} label="One uppercase letter (A-Z)" />
+                  <StrengthRow ok={strength.hasLower} label="One lowercase letter (a-z)" />
+                  <StrengthRow ok={strength.hasNumber} label="One number (0-9)" />
+                  <StrengthRow ok={strength.hasSpecial} label="One special character (!@#$...)" />
+                </div>
+              )}
             </div>
 
             {error && (
-              <p className="text-red-400 text-xs rounded-lg px-3 py-2"
-                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+              <p className="text-xs rounded-lg px-3 py-2"
+                style={{ color: '#f87171', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
                 {error}
               </p>
             )}
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-send-btn text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2 hover:opacity-90"
+              disabled={loading || (mode === 'register' && !passwordValid)}
+              className="w-full text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              style={{ background: 'linear-gradient(135deg, #0096ff, #00c8ff)' }}
             >
               {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}
             </button>

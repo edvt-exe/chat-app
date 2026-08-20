@@ -10,6 +10,7 @@ import uploadRoutes from './routes/upload.routes';
 import storyRoutes from './routes/story.routes';
 import { initSocketServer } from './sockets';
 import { startCleanupJob } from './jobs/cleanupStories';
+import usersRoutes from './routes/users.routes';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use('/api', limiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/stories', storyRoutes);
+app.use('/api/users', usersRoutes);
 
 initSocketServer(httpServer);
 startCleanupJob();

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { Conversation, Message, Story } from '../types';
 import { getSocket } from '../services/socket';
 import api from '../services/api';
+import { useAuth } from './AuthContext';
 
 interface ChatContextType {
   conversations: Conversation[];
@@ -15,15 +16,27 @@ interface ChatContextType {
   toggleReaction: (messageId: string, emoji: string) => void;
   startConversation: (targetUserId: string) => Promise<void>;
   loadStories: () => Promise<void>;
+  loadConversations: () => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
 
 export function ChatProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversationState] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
+
+  async function loadConversations() {
+    const { data } = await api.get('/api/users/conversations');
+    setConversations(data);
+  }
+
+  useEffect(() => {
+    if (!user) return;
+    loadConversations();
+  }, [user]);
 
   useEffect(() => {
     const socket = getSocket();
@@ -34,11 +47,24 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         if (prev.find((m) => m.id === message.id)) return prev;
         return [...prev, message];
       });
+
+      // aggiorna la conversazione nella sidebar
+      setConversations((prev) => {
+        const exists = prev.find((c) => c.id === message.conversationId);
+        if (exists) {
+          return [
+            { ...exists, messages: [message] },
+            ...prev.filter((c) => c.id !== message.conversationId),
+          ];
+        }
+        loadConversations();
+        return prev;
+      });
     });
 
     socket.on('reaction:updated', ({ messageId, reactions }: { messageId: string; reactions: any }) => {
       setMessages((prev) =>
-        prev.map((m) => m.id === messageId ? { ...m, reactions } : m)
+        prev.map((m) => (m.id === messageId ? { ...m, reactions } : m))
       );
     });
 
@@ -73,16 +99,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   async function sendFile(file: File) {
     if (!activeConversation) return;
-
     const formData = new FormData();
     formData.append('file', file);
-
     const { data } = await api.post('/api/upload', formData);
     const socket = getSocket();
-    socket?.emit('message:sendFile', {
-      conversationId: activeConversation.id,
-      ...data,
-    });
+    socket?.emit('message:sendFile', { conversationId: activeConversation.id, ...data });
   }
 
   function toggleReaction(messageId: string, emoji: string) {
@@ -95,13 +116,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (!socket) return;
 
     socket.emit('conversation:start', { targetUserId }, (res: any) => {
-      if (res.success) {
-        setConversations((prev) => {
-          if (prev.find((c) => c.id === res.conversation.id)) return prev;
-          return [res.conversation, ...prev];
-        });
+      if (!res.success) return;
+      setConversations((prev) => {
+        if (prev.find((c) => c.id === res.conversation.id)) {
+          setActiveConversation(res.conversation);
+          return prev;
+        }
+        const updated = [res.conversation, ...prev];
         setActiveConversation(res.conversation);
-      }
+        return updated;
+      });
     });
   }
 
@@ -114,7 +138,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     <ChatContext.Provider value={{
       conversations, activeConversation, messages, stories,
       setActiveConversation, sendMessage, sendFile, toggleReaction,
-      startConversation, loadStories,
+      startConversation, loadStories, loadConversations,
     }}>
       {children}
     </ChatContext.Provider>

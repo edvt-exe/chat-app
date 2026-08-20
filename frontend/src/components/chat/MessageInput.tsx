@@ -1,16 +1,35 @@
 import { useState, useRef } from 'react';
 import { useChat } from '../../contexts/ChatContext';
+import { getSocket } from '../../services/socket';
 
 export default function MessageInput() {
   const { sendMessage, sendFile, activeConversation } = useChat();
   const [text, setText] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const typingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim() || !activeConversation) return;
     sendMessage(text.trim());
     setText('');
+
+    const socket = getSocket();
+    if (socket) socket.emit('typing:stop', { conversationId: activeConversation.id });
+  }
+
+  function handleTyping(e: React.ChangeEvent<HTMLInputElement>) {
+    setText(e.target.value);
+
+    const socket = getSocket();
+    if (!activeConversation || !socket) return;
+
+    socket.emit('typing:start', { conversationId: activeConversation.id });
+
+    if (typingRef.current) clearTimeout(typingRef.current);
+    typingRef.current = setTimeout(() => {
+      socket.emit('typing:stop', { conversationId: activeConversation.id });
+    }, 1500);
   }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -46,9 +65,12 @@ export default function MessageInput() {
 
       <input
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={handleTyping}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e as any); }
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit(e as any);
+          }
         }}
         placeholder={activeConversation ? 'Type a message...' : 'Select a conversation'}
         disabled={!activeConversation}

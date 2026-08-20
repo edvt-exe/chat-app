@@ -114,6 +114,14 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
     }
   });
 
+  socket.on('typing:start', ({ conversationId }) => {
+    socket.to(conversationId).emit('typing:start', { userId, username: socket.username });
+  });
+
+  socket.on('typing:stop', ({ conversationId }) => {
+    socket.to(conversationId).emit('typing:stop', { userId });
+  });
+
   socket.on('disconnect', async () => {
     await prisma.user.update({
       where: { id: userId },
