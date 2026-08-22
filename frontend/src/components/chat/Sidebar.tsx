@@ -1,13 +1,21 @@
-import { useState } from 'react';
 import { useChat } from '../../contexts/ChatContext';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Conversation } from '../../types';
-import Avatar from '../ui/Avatar';
 import UserSearch from './UserSearch';
 import SettingsPanel from '../settings/SettingsPanel';
+import NotificationBell from '../ui/NotificationBell';
+import { useState } from 'react';
+
+const API = 'http://localhost:3000';
+
+function getAvatarUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${API}${url}`;
+}
 
 export default function Sidebar() {
-  const { conversations, setActiveConversation, activeConversation } = useChat();
+  const { conversations, setActiveConversation, activeConversation, unreadCounts } = useChat();
   const { user, logout } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -31,36 +39,25 @@ export default function Sidebar() {
 
   return (
     <>
-      <div
-        className="w-64 flex-shrink-0 flex flex-col h-full"
-        style={{
-          background: 'rgba(255,255,255,0.04)',
-          backdropFilter: 'blur(20px)',
-          borderRight: '1px solid rgba(0,200,255,0.12)',
-        }}
-      >
-        <div
-          className="px-4 py-4 flex items-center justify-between flex-shrink-0"
-          style={{ borderBottom: '1px solid rgba(0,200,255,0.08)' }}
-        >
-          <span className="text-lg font-bold text-white tracking-tight">
+      <div style={{
+        width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', height: '100vh',
+        background: 'rgba(255,255,255,0.04)',
+        backdropFilter: 'blur(20px)',
+        borderRight: '1px solid rgba(0,200,255,0.12)',
+      }}>
+        {/* header */}
+        <div style={{ padding: '16px 14px', borderBottom: '1px solid rgba(0,200,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <span style={{ fontSize: 18, fontWeight: 700, color: 'white', letterSpacing: -0.5 }}>
             Nexus<span style={{ color: '#00c8ff' }}>Chat</span>
           </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => setShowSettings(true)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-colors"
-              style={{ background: 'rgba(0,200,255,0.08)', border: '1px solid rgba(0,200,255,0.15)', color: 'rgba(0,200,255,0.6)' }}
-              title="Settings"
-            >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <NotificationBell />
+            <button onClick={() => setShowSettings(true)}
+              style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,200,255,0.08)', border: '1px solid rgba(0,200,255,0.15)', color: 'rgba(0,200,255,0.6)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               ⚙
             </button>
-            <button
-              onClick={() => setShowLogoutConfirm(true)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-colors"
-              style={{ background: 'rgba(255,50,50,0.08)', border: '1px solid rgba(255,50,50,0.15)', color: 'rgba(255,80,80,0.7)' }}
-              title="Logout"
-            >
+            <button onClick={() => setShowLogoutConfirm(true)}
+              style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,50,50,0.08)', border: '1px solid rgba(255,50,50,0.15)', color: 'rgba(255,80,80,0.7)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               ⏻
             </button>
           </div>
@@ -68,63 +65,95 @@ export default function Sidebar() {
 
         <UserSearch />
 
-        <div className="flex-1 overflow-y-auto px-2 py-1">
+        {/* conversations list */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '4px 8px' }}>
           {conversations.length === 0 ? (
-            <div className="text-center py-8 px-4">
-              <p className="text-3xl mb-2">💬</p>
-              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                Search for a user above to start chatting.
-              </p>
+            <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+              <p style={{ fontSize: 28, margin: '0 0 8px' }}>💬</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Search for a user to start chatting</p>
             </div>
-          ) : (
-            conversations.map((conv) => {
-              const other = getOtherParticipant(conv);
-              const isActive = conv.id === activeConversation?.id;
+          ) : conversations.map((conv) => {
+            const other = getOtherParticipant(conv);
+            const isActive = conv.id === activeConversation?.id;
+            const unread = unreadCounts[conv.id] || 0;
 
-              return (
-                <button
-                  key={conv.id}
-                  onClick={() => setActiveConversation(conv)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-all text-left"
-                  style={{
-                    background: isActive ? 'rgba(0,200,255,0.08)' : 'transparent',
-                    border: isActive ? '1px solid rgba(0,200,255,0.2)' : '1px solid transparent',
-                  }}
-                >
-                  {other ? (
-                    <Avatar
-                      user={{ username: other.username, avatarUrl: other.avatarUrl, isOnline: other.isOnline }}
-                      size="md"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm flex-shrink-0"
-                      style={{ background: 'rgba(0,200,255,0.1)', color: '#00c8ff' }}>
-                      👥
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">{getConversationName(conv)}</p>
-                    <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                      {getLastMessage(conv)}
-                    </p>
+            return (
+              <button
+                key={conv.id}
+                onClick={() => setActiveConversation(conv)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 10px', borderRadius: 10, marginBottom: 2,
+                  background: isActive ? 'rgba(0,200,255,0.08)' : 'transparent',
+                  border: isActive ? '1px solid rgba(0,200,255,0.2)' : '1px solid transparent',
+                  cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                {/* avatar */}
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 15, fontWeight: 600, color: 'white', overflow: 'hidden',
+                  }}>
+                    {other?.avatarUrl ? (
+                      <img src={getAvatarUrl(other.avatarUrl) || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                    ) : (
+                      (other?.username || '?')[0].toUpperCase()
+                    )}
                   </div>
-                </button>
-              );
-            })
-          )}
+                  {other?.isOnline && (
+                    <span style={{ position: 'absolute', bottom: 1, right: 1, width: 10, height: 10, borderRadius: '50%', background: '#22d46a', border: '2px solid #060b14' }} />
+                  )}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'white', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {getConversationName(conv)}
+                    </p>
+                    {unread > 0 && (
+                      <span style={{
+                        minWidth: 18, height: 18, borderRadius: 100,
+                        background: '#00c8ff', color: '#060b14',
+                        fontSize: 10, fontWeight: 700,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        padding: '0 4px', flexShrink: 0, marginLeft: 4,
+                      }}>
+                        {unread > 99 ? '99+' : unread}
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: 11, color: unread > 0 ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: unread > 0 ? 500 : 400 }}>
+                    {getLastMessage(conv)}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
         </div>
 
-        <div
-          className="px-4 py-3 flex items-center gap-3 flex-shrink-0"
-          style={{ borderTop: '1px solid rgba(0,200,255,0.08)' }}
-        >
-          <Avatar
-            user={{ username: user?.username || '', avatarUrl: user?.avatarUrl || null, isOnline: true }}
-            size="sm"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white truncate">{user?.username}</p>
-            <p className="text-xs" style={{ color: '#22d46a' }}>Online</p>
+        {/* user footer */}
+        <div style={{ padding: '12px 14px', borderTop: '1px solid rgba(0,200,255,0.08)', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 12, fontWeight: 600, color: 'white', overflow: 'hidden',
+            }}>
+              {user?.avatarUrl ? (
+                <img src={getAvatarUrl(user.avatarUrl) || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+              ) : (
+                (user?.username || 'U')[0].toUpperCase()
+              )}
+            </div>
+            <span style={{ position: 'absolute', bottom: 0, right: 0, width: 8, height: 8, borderRadius: '50%', background: '#22d46a', border: '2px solid #060b14' }} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'white', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.username}</p>
+            <p style={{ fontSize: 10, color: '#22d46a', margin: 0 }}>Online</p>
           </div>
         </div>
       </div>
@@ -132,27 +161,19 @@ export default function Sidebar() {
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
 
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)' }}>
-          <div className="w-full max-w-xs rounded-2xl p-6 text-center"
-            style={{ background: '#0a1020', border: '1px solid rgba(0,200,255,0.15)' }}>
-            <p className="text-lg font-semibold text-white mb-2">Sign out?</p>
-            <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ width: '100%', maxWidth: 300, borderRadius: 20, padding: 24, textAlign: 'center', background: '#0a1020', border: '1px solid rgba(0,200,255,0.15)' }}>
+            <p style={{ fontSize: 18, fontWeight: 600, color: 'white', margin: '0 0 8px' }}>Sign out?</p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 24px' }}>
               You'll need to sign in again to access your messages.
             </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
-              >
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setShowLogoutConfirm(false)}
+                style={{ flex: 1, padding: '10px 0', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 Cancel
               </button>
-              <button
-                onClick={() => { logout(); setShowLogoutConfirm(false); }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
-                style={{ background: 'rgba(239,68,68,0.8)' }}
-              >
+              <button onClick={() => { logout(); setShowLogoutConfirm(false); }}
+                style={{ flex: 1, padding: '10px 0', borderRadius: 10, background: 'rgba(239,68,68,0.8)', border: 'none', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 Sign out
               </button>
             </div>

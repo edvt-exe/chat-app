@@ -1,20 +1,36 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useChat } from '../../contexts/ChatContext';
 import { useAuth } from '../../contexts/AuthContext';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import TypingIndicator from './TypingIndicator';
 import StoriesBar from '../stories/StoriesBar';
-import Avatar from '../ui/Avatar';
+
+const API = 'http://localhost:3000';
+
+function getAvatarUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${API}${url}`;
+}
 
 export default function ChatArea() {
   const { activeConversation, messages } = useChat();
   const { user } = useAuth();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [wallpaper, setWallpaper] = useState(localStorage.getItem('wallpaper') || '');
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    function handleWallpaperChange() {
+      setWallpaper(localStorage.getItem('wallpaper') || '');
+    }
+    window.addEventListener('wallpaper-change', handleWallpaperChange);
+    return () => window.removeEventListener('wallpaper-change', handleWallpaperChange);
+  }, []);
 
   function getOtherUser(conv: typeof activeConversation) {
     if (!conv) return null;
@@ -25,103 +41,148 @@ export default function ChatArea() {
 
   return (
     <div
-      className="flex-1 flex flex-col h-full overflow-hidden relative"
-      style={{ background: '#060b14' }}
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        overflow: 'hidden',
+        background: '#060b14',
+        position: 'relative',
+      }}
     >
-      <div
-        className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none"
-        style={{
-          background: 'radial-gradient(circle, rgba(0,200,255,0.06) 0%, transparent 70%)',
-          zIndex: 0,
-        }}
-      />
+      {/* ambient glow */}
+      <div style={{
+        position: 'absolute', top: 0, right: 0,
+        width: 400, height: 400, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,200,255,0.06) 0%, transparent 70%)',
+        pointerEvents: 'none', zIndex: 0,
+      }} />
 
-      <div style={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
+      {/* stories bar — fixed height, no horizontal scroll */}
+      <div style={{ flexShrink: 0, zIndex: 1, position: 'relative' }}>
         <StoriesBar />
       </div>
 
       {activeConversation ? (
         <>
-          <div
-            className="px-5 py-3 flex items-center gap-3 flex-shrink-0"
-            style={{
-              borderBottom: '1px solid rgba(0,200,255,0.08)',
-              background: 'rgba(255,255,255,0.02)',
-              position: 'relative',
-              zIndex: 1,
-            }}
-          >
+          {/* chat header */}
+          <div style={{
+            flexShrink: 0,
+            padding: '12px 20px',
+            borderBottom: '1px solid rgba(0,200,255,0.08)',
+            background: 'rgba(255,255,255,0.02)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            zIndex: 1,
+          }}>
             {otherUser ? (
-              <Avatar
-                user={{
-                  username: otherUser.username,
-                  avatarUrl: otherUser.avatarUrl,
-                  isOnline: otherUser.isOnline,
-                }}
-                size="md"
-              />
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
+                  overflow: 'hidden',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 14, fontWeight: 600, color: 'white',
+                }}>
+                  {otherUser.avatarUrl ? (
+                    <img
+                      src={getAvatarUrl(otherUser.avatarUrl) || ''}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      alt=""
+                    />
+                  ) : (
+                    otherUser.username[0].toUpperCase()
+                  )}
+                </div>
+                {otherUser.isOnline && (
+                  <span style={{
+                    position: 'absolute', bottom: 1, right: 1,
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: '#22d46a',
+                    border: '2px solid #060b14',
+                  }} />
+                )}
+              </div>
             ) : (
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-sm"
-                style={{
-                  background: 'rgba(0,200,255,0.1)',
-                  border: '1px solid rgba(0,200,255,0.2)',
-                  color: '#00c8ff',
-                }}
-              >
+              <div style={{
+                width: 40, height: 40, borderRadius: '50%',
+                background: 'rgba(0,200,255,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 18,
+              }}>
                 👥
               </div>
             )}
             <div>
-              <p className="font-semibold text-white text-sm">
+              <p style={{ color: 'white', fontWeight: 600, fontSize: 14, margin: 0 }}>
                 {activeConversation.name || otherUser?.username || 'Unknown'}
               </p>
-              {otherUser?.isOnline && (
-                <p className="text-xs" style={{ color: '#22d46a' }}>● Online</p>
-              )}
+              {otherUser?.isOnline ? (
+                <p style={{ color: '#22d46a', fontSize: 11, margin: 0 }}>● Online</p>
+              ) : otherUser?.lastSeenAt ? (
+                <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, margin: 0 }}>
+                  Last seen {new Date(otherUser.lastSeenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              ) : null}
             </div>
           </div>
 
-          <div
-            className="flex-1 overflow-y-auto px-5 py-4"
-            style={{ position: 'relative', zIndex: 1 }}
-          >
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full gap-3">
-                <span className="text-4xl">💬</span>
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                  No messages yet. Say hi!
-                </p>
-              </div>
+          {/* messages area */}
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            padding: '16px 20px',
+            zIndex: 1,
+            position: 'relative',
+            backgroundImage: wallpaper ? `url(${wallpaper})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'local',
+          }}>
+            {wallpaper && (
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'rgba(6,11,20,0.75)',
+                pointerEvents: 'none',
+              }} />
             )}
-            {messages.map((msg) => (
-              <MessageBubble key={msg.id} message={msg} />
-            ))}
-            <div ref={bottomRef} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {messages.length === 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 12 }}>
+                  <span style={{ fontSize: 40 }}>💬</span>
+                  <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No messages yet. Say hi!</p>
+                </div>
+              )}
+              {messages.map((msg) => (
+                <MessageBubble key={msg.id} message={msg} />
+              ))}
+              <div ref={bottomRef} />
+            </div>
           </div>
 
-          <div style={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
+          {/* typing + input */}
+          <div style={{ flexShrink: 0, zIndex: 1 }}>
             <TypingIndicator conversationId={activeConversation.id} />
             <MessageInput />
           </div>
         </>
       ) : (
-        <div
-          className="flex-1 flex flex-col items-center justify-center gap-4"
-          style={{ position: 'relative', zIndex: 1 }}
-        >
-          <div
-            className="text-5xl font-bold tracking-tight"
-            style={{ color: 'rgba(0,200,255,0.2)' }}
-          >
-            ✦
-          </div>
-          <p className="text-lg font-semibold" style={{ color: 'rgba(0,200,255,0.5)' }}>
-            NexusChat
-          </p>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            Search for a user to start chatting
-          </p>
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 16,
+          zIndex: 1,
+          position: 'relative',
+        }}>
+          <div style={{ fontSize: 48, color: 'rgba(0,200,255,0.2)', fontWeight: 700 }}>✦</div>
+          <p style={{ color: 'rgba(0,200,255,0.5)', fontSize: 18, fontWeight: 600 }}>NexusChat</p>
+          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 14 }}>Search for a user to start chatting</p>
         </div>
       )}
     </div>

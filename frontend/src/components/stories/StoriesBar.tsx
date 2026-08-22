@@ -35,18 +35,34 @@ export default function StoriesBar() {
 
   return (
     <>
-      <div
-        className="flex items-center gap-3 px-4 py-3 overflow-x-auto"
-        style={{ borderBottom: '1px solid rgba(0,200,255,0.08)', background: 'rgba(255,255,255,0.02)', flexShrink: 0 }}
-      >
-        <button onClick={handleAddStory} className="flex flex-col items-center gap-1.5 flex-shrink-0">
-          <div
-            className="w-11 h-11 rounded-full flex items-center justify-center text-lg font-semibold transition-colors"
-            style={{ background: 'rgba(0,200,255,0.06)', border: '1px dashed rgba(0,200,255,0.35)', color: '#00c8ff' }}
-          >
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '12px 16px',
+        borderBottom: '1px solid rgba(0,200,255,0.08)',
+        background: 'rgba(255,255,255,0.02)',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        flexShrink: 0,
+        scrollbarWidth: 'none',
+      } as React.CSSProperties}>
+
+        {/* buton add story */}
+        <button
+          onClick={handleAddStory}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          <div style={{
+            width: 44, height: 44, borderRadius: '50%',
+            background: 'rgba(0,200,255,0.06)',
+            border: '1px dashed rgba(0,200,255,0.35)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 20, color: '#00c8ff',
+          }}>
             +
           </div>
-          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>Add</span>
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>Add</span>
         </button>
 
         {Object.values(grouped).map(({ user: storyUser, stories: userStories }) => {
@@ -57,31 +73,36 @@ export default function StoriesBar() {
           return (
             <button
               key={storyUser.id}
-              className="flex flex-col items-center gap-1.5 flex-shrink-0"
               onClick={() => setViewerData({ stories: userStories, index: 0 })}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer' }}
             >
-              <div
-                className="w-11 h-11 rounded-full p-0.5 flex items-center justify-center"
-                style={{
-                  background: hasUnviewed
-                    ? 'linear-gradient(135deg, #00c8ff, #0066ff)'
-                    : 'rgba(0,200,255,0.1)',
-                }}
-              >
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
-                  style={{ background: '#0d1829' }}
-                >
+              <div style={{
+                width: 44, height: 44, borderRadius: '50%', padding: 2,
+                background: hasUnviewed
+                  ? 'linear-gradient(135deg, #00c8ff, #0066ff)'
+                  : 'rgba(0,200,255,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: '50%',
+                  background: '#0d1829',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  overflow: 'hidden',
+                }}>
                   {storyUser.avatarUrl ? (
-                    <img src={`http://localhost:3000${storyUser.avatarUrl}`} className="w-full h-full object-cover" alt="" />
+                    <img
+                      src={storyUser.avatarUrl.startsWith('http') ? storyUser.avatarUrl : `http://localhost:3000${storyUser.avatarUrl}`}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      alt=""
+                    />
                   ) : (
-                    <span className="text-sm font-semibold" style={{ color: '#00c8ff' }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#00c8ff' }}>
                       {storyUser.username[0].toUpperCase()}
                     </span>
                   )}
                 </div>
               </div>
-              <span className="text-xs max-w-[44px] truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', maxWidth: 44, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {storyUser.username}
               </span>
             </button>

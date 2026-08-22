@@ -1,36 +1,26 @@
 import { prisma } from '../db/prisma';
-import { SendMessageInput } from '../types/message.types';
+import type { SendMessageInput } from '../types/message.types';
+
+function groupReactions(reactions: any[]) {
+  return reactions.reduce((acc, r) => {
+    if (!acc[r.emoji]) acc[r.emoji] = [];
+    acc[r.emoji].push({ userId: r.userId, username: r.user?.username || '' });
+    return acc;
+  }, {} as Record<string, { userId: string; username: string }[]>);
+}
 
 export async function saveMessage(senderId: string, input: SendMessageInput) {
   const { conversationId, content } = input;
 
-  return prisma.message.create({
-    data: {
-      conversationId,
-      senderId,
-      content,
-      messageType: 'TEXT',
-    },
+  const msg = await prisma.message.create({
+    data: { conversationId, senderId, content, messageType: 'TEXT' },
     include: {
-      sender: {
-        select: { id: true, username: true, avatarUrl: true },
-      },
+      sender: { select: { id: true, username: true, avatarUrl: true } },
+      reactions: { include: { user: { select: { id: true, username: true } } } },
     },
   });
-}
 
-export async function getConversationMessages(conversationId: string, limit = 50) {
-  return prisma.message.findMany({
-    where: { conversationId, deletedAt: null },
-    orderBy: { createdAt: 'desc' },
-    take: limit,
-    include: {
-      sender: {
-        select: { id: true, username: true, avatarUrl: true },
-      },
-      reactions: true,
-    },
-  });
+  return { ...msg, reactions: groupReactions(msg.reactions) };
 }
 
 export async function saveFileMessage(
@@ -41,7 +31,7 @@ export async function saveFileMessage(
   fileSize: number,
   messageType: string
 ) {
-  return prisma.message.create({
+  const msg = await prisma.message.create({
     data: {
       conversationId,
       senderId,
@@ -52,6 +42,23 @@ export async function saveFileMessage(
     },
     include: {
       sender: { select: { id: true, username: true, avatarUrl: true } },
+      reactions: { include: { user: { select: { id: true, username: true } } } },
     },
   });
+
+  return { ...msg, reactions: groupReactions(msg.reactions) };
+}
+
+export async function getConversationMessages(conversationId: string, limit = 50) {
+  const msgs = await prisma.message.findMany({
+    where: { conversationId, deletedAt: null },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    include: {
+      sender: { select: { id: true, username: true, avatarUrl: true } },
+      reactions: { include: { user: { select: { id: true, username: true } } } },
+    },
+  });
+
+  return msgs.map((m) => ({ ...m, reactions: groupReactions(m.reactions) }));
 }
