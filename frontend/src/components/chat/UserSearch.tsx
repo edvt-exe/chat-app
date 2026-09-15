@@ -19,98 +19,53 @@ export default function UserSearch() {
 
   useEffect(() => {
     if (query.length < 2) { setResults([]); return; }
-
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {
       setLoading(true);
       try {
         const { data } = await api.get(`/api/users/search?q=${query}`);
         setResults(data);
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     }, 300);
   }, [query]);
 
   async function handleSelect(userId: string) {
     await startConversation(userId);
-    setQuery('');
-    setResults([]);
-    setOpen(false);
+    setQuery(''); setResults([]); setOpen(false);
   }
 
   return (
-    <div className="relative px-3 py-3 flex-shrink-0">
-      <div
-        className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm cursor-text"
-        style={{
-          background: 'rgba(0,0,0,0.2)',
-          border: '1px solid rgba(0,200,255,0.1)',
-        }}
-        onClick={() => setOpen(true)}
-      >
-        <span style={{ color: 'rgba(255,255,255,0.25)' }}>🔍</span>
+    <div className="relative px-3 py-3 shrink-0 border-b border-ios-border">
+      <div className="flex items-center gap-2 bg-ios-input px-3 py-1.5 rounded-[10px]" onClick={() => setOpen(true)}>
+        <span className="text-ios-text-sec text-[14px]">🔍</span>
         <input
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
-          placeholder="Search users..."
-          className="flex-1 bg-transparent text-white placeholder-white/20 focus:outline-none text-sm"
+          placeholder="Search..."
+          className="flex-1 bg-transparent text-white placeholder-ios-text-sec outline-none text-[15px]"
         />
       </div>
 
       {open && (query.length >= 2) && (
-        <div
-          className="absolute left-3 right-3 top-full mt-1 rounded-xl overflow-hidden z-50"
-          style={{
-            background: 'rgba(10,16,32,0.98)',
-            border: '1px solid rgba(0,200,255,0.2)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          }}
-        >
-          {loading && (
-            <div className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
-              Searching...
-            </div>
-          )}
-          {!loading && results.length === 0 && (
-            <div className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
-              No users found
-            </div>
-          )}
+        <div className="absolute left-3 right-3 top-full mt-2 rounded-[16px] bg-ios-card border border-ios-border z-50 overflow-hidden shadow-2xl">
+          {loading && <div className="px-4 py-3 text-[13px] text-ios-text-sec">Searching...</div>}
+          {!loading && results.length === 0 && <div className="px-4 py-3 text-[13px] text-ios-text-sec">No users found</div>}
           {results.map((u) => (
             <button
-              key={u.id}
-              onClick={() => handleSelect(u.id)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
-              style={{ borderBottom: '1px solid rgba(0,200,255,0.06)' }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0,200,255,0.06)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              key={u.id} onClick={() => handleSelect(u.id)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left border-b border-ios-border last:border-none hover:bg-ios-hover transition-colors"
             >
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 relative"
-                style={{ background: 'linear-gradient(135deg, #0066ff, #00c8ff)', color: 'white' }}
-              >
+              <div className="w-8 h-8 rounded-full bg-ios-blue text-white flex items-center justify-center text-[13px] font-semibold shrink-0">
                 {u.username[0].toUpperCase()}
-                {u.isOnline && (
-                  <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-green-400 border-2"
-                    style={{ borderColor: '#0a1020' }} />
-                )}
               </div>
               <div>
-                <p className="text-sm font-semibold text-white">{u.username}</p>
-                <p className="text-xs" style={{ color: u.isOnline ? '#22d46a' : 'rgba(255,255,255,0.3)' }}>
-                  {u.isOnline ? 'Online' : 'Offline'}
-                </p>
+                <p className="text-[15px] font-medium text-white">{u.username}</p>
               </div>
             </button>
           ))}
         </div>
       )}
-
-      {open && (
-        <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-      )}
+      {open && <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />}
     </div>
   );
 }

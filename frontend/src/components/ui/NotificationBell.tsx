@@ -32,33 +32,14 @@ export default function NotificationBell() {
   }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative">
       <button
         onClick={toggle}
-        style={{
-          width: 32, height: 32,
-          borderRadius: 8,
-          background: 'rgba(0,200,255,0.08)',
-          border: '1px solid rgba(0,200,255,0.15)',
-          color: 'rgba(0,200,255,0.6)',
-          cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 16, position: 'relative',
-        }}
-        title="Notifications"
+        className="relative w-8 h-8 rounded-full bg-ios-input text-ios-text-sec hover:text-white flex items-center justify-center transition-colors"
       >
         🔔
         {unread > 0 && (
-          <span style={{
-            position: 'absolute', top: -4, right: -4,
-            width: 16, height: 16,
-            background: '#ef4444',
-            borderRadius: '50%',
-            fontSize: 9, fontWeight: 700,
-            color: 'white',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: '2px solid #060b14',
-          }}>
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-ios-red rounded-full text-[9px] font-bold text-white flex items-center justify-center border-2 border-ios-bg">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
@@ -66,65 +47,46 @@ export default function NotificationBell() {
 
       {open && (
         <>
-          <div
-            style={{ position: 'fixed', inset: 0, zIndex: 40 }}
-            onClick={() => setOpen(false)}
-          />
-          <div style={{
-            position: 'absolute', top: 40, right: 0,
-            width: 300,
-            background: 'rgba(10,16,32,0.98)',
-            border: '1px solid rgba(0,200,255,0.2)',
-            borderRadius: 12,
-            overflow: 'hidden',
-            zIndex: 50,
-            backdropFilter: 'blur(20px)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          }}>
-            <div style={{
-              padding: '12px 16px',
-              borderBottom: '1px solid rgba(0,200,255,0.08)',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            }}>
-              <p style={{ color: 'white', fontWeight: 600, fontSize: 13, margin: 0 }}>Notifications</p>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-10 left-0 sm:right-0 sm:left-auto w-[300px] bg-ios-card border border-ios-border rounded-2xl overflow-hidden z-50 shadow-2xl">
+            
+            <div className="px-4 py-3 border-b border-ios-border flex justify-between items-center">
+              <p className="text-white font-semibold text-[15px]">Notifications</p>
               {notifications.length > 0 && (
                 <button
                   onClick={markNotificationsRead}
-                  style={{ fontSize: 11, color: 'rgba(0,200,255,0.6)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  className="text-[13px] text-ios-blue font-medium"
                 >
-                  Mark all read
+                  Mark read
                 </button>
               )}
             </div>
 
-            <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+            <div className="max-h-[360px] overflow-y-auto">
               {notifications.length === 0 ? (
-                <div style={{ padding: '24px 16px', textAlign: 'center' }}>
-                  <p style={{ fontSize: 24, margin: '0 0 8px' }}>🔔</p>
-                  <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, margin: 0 }}>No notifications yet</p>
+                <div className="p-6 text-center">
+                  <p className="text-2xl mb-2">🔔</p>
+                  <p className="text-[13px] text-ios-text-sec">No notifications yet</p>
                 </div>
               ) : (
                 notifications.map((n) => (
                   <div
                     key={n.id}
-                    style={{
-                      padding: '10px 16px',
-                      borderBottom: '1px solid rgba(0,200,255,0.06)',
-                      display: 'flex', gap: 10, alignItems: 'flex-start',
-                      background: n.read ? 'transparent' : 'rgba(0,200,255,0.04)',
-                    }}
+                    className={`flex items-start gap-3 px-4 py-3 border-b border-ios-border last:border-0 ${
+                      n.read ? 'bg-transparent' : 'bg-ios-input/50'
+                    }`}
                   >
-                    <span style={{ fontSize: 18, flexShrink: 0 }}>{getIcon(n)}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, margin: '0 0 2px', lineHeight: 1.4 }}>
+                    <span className="text-[18px] shrink-0">{getIcon(n)}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[14px] text-white leading-snug mb-0.5 break-words">
                         {getText(n)}
                       </p>
-                      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, margin: 0 }}>
+                      <p className="text-[11px] text-ios-text-sec">
                         {formatTime(n.timestamp)}
                       </p>
                     </div>
                     {!n.read && (
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00c8ff', flexShrink: 0, marginTop: 4 }} />
+                      <span className="w-2 h-2 rounded-full bg-ios-blue shrink-0 mt-1.5" />
                     )}
                   </div>
                 ))

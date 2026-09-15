@@ -5,7 +5,7 @@ import { ChatProvider } from '../../contexts/ChatContext';
 export default function MainLayout() {
   return (
     <ChatProvider>
-      <div className="h-screen flex overflow-hidden" style={{ background: '#060b14' }}>
+      <div className="h-screen flex overflow-hidden bg-ios-bg">
         <Sidebar />
         <ChatArea />
       </div>

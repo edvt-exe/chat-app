@@ -1,0 +1,5108 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+backend/
+  prisma/
+    migrations/
+      20260812092717_init/
+        migration.sql
+      20260821080550_add_2fa_codes/
+        migration.sql
+      20260822112549_add_message_seen/
+        migration.sql
+      migration_lock.toml
+    schema.prisma
+  src/
+    controllers/
+      auth.controller.ts
+      story.controller.ts
+      upload.controller.ts
+    db/
+      prisma.ts
+    jobs/
+      cleanupStories.ts
+    middleware/
+      auth.ts
+      upload.ts
+    routes/
+      auth.routes.ts
+      messages.routes.ts
+      story.routes.ts
+      upload.routes.ts
+      users.routes.ts
+    services/
+      auth.service.ts
+      conversation.service.ts
+      email.service.ts
+      message.service.ts
+      reaction.service.ts
+      story.service.ts
+    sockets/
+      authSocket.ts
+      chatSocket.ts
+      index.ts
+    types/
+      auth.types.ts
+      message.types.ts
+      socket.types.ts
+    server.ts
+  uploads/
+    .gitkeep
+  .gitignore
+  package.json
+  tsconfig.json
+frontend/
+  public/
+    favicon.svg
+    icons.svg
+  src/
+    assets/
+      hero.png
+      react.svg
+      vite.svg
+    components/
+      auth/
+        AuthPage.tsx
+      chat/
+        ChatArea.tsx
+        MessageBubble.tsx
+        MessageInput.tsx
+        Sidebar.tsx
+        TypingIndicator.tsx
+        UserSearch.tsx
+      layout/
+        MainLayout.tsx
+      settings/
+        SettingsPanel.tsx
+      stories/
+        StoriesBar.tsx
+        StoryViewer.tsx
+      ui/
+        Avatar.tsx
+        NotificationBell.tsx
+    contexts/
+      AuthContext.tsx
+      ChatContext.tsx
+    hooks/
+      useSocket.ts
+    services/
+      api.ts
+      socket.ts
+    types/
+      index.ts
+    App.css
+    App.tsx
+    index.css
+    main.tsx
+  .gitignore
+  .oxlintrc.json
+  index.html
+  package.json
+  postcss.config.js
+  README.md
+  tailwind.config.js
+  tsconfig.app.json
+  tsconfig.json
+  tsconfig.node.json
+  vite.config.ts
+.gitignore
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="backend/prisma/migrations/20260821080550_add_2fa_codes/migration.sql">
+-- CreateTable
+CREATE TABLE "two_factor_codes" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "used" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "two_factor_codes_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "two_factor_codes" ADD CONSTRAINT "two_factor_codes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+</file>
+
+<file path="backend/prisma/migrations/20260822112549_add_message_seen/migration.sql">
+-- CreateTable
+CREATE TABLE "message_seen" (
+    "id" TEXT NOT NULL,
+    "message_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "seen_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "message_seen_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "message_seen_message_id_user_id_key" ON "message_seen"("message_id", "user_id");
+</file>
+
+<file path="backend/prisma/migrations/20260812092717_init/migration.sql">
+-- CreateEnum
+CREATE TYPE "MessageType" AS ENUM ('TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'FILE');
+
+-- CreateEnum
+CREATE TYPE "StoryType" AS ENUM ('IMAGE', 'VIDEO');
+
+-- CreateTable
+CREATE TABLE "users" (
+    "id" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password_hash" TEXT NOT NULL,
+    "avatar_url" TEXT,
+    "bio" TEXT,
+    "is_online" BOOLEAN NOT NULL DEFAULT false,
+    "last_seen_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "conversations" (
+    "id" TEXT NOT NULL,
+    "is_group" BOOLEAN NOT NULL DEFAULT false,
+    "name" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "conversations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "conversation_participants" (
+    "id" TEXT NOT NULL,
+    "conversation_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "joined_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "conversation_participants_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "messages" (
+    "id" TEXT NOT NULL,
+    "conversation_id" TEXT NOT NULL,
+    "sender_id" TEXT NOT NULL,
+    "content" TEXT,
+    "message_type" "MessageType" NOT NULL DEFAULT 'TEXT',
+    "file_url" TEXT,
+    "file_name" TEXT,
+    "file_size" INTEGER,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "edited_at" TIMESTAMP(3),
+    "deleted_at" TIMESTAMP(3),
+
+    CONSTRAINT "messages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "reactions" (
+    "id" TEXT NOT NULL,
+    "message_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "emoji" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "reactions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "stories" (
+    "id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "media_url" TEXT NOT NULL,
+    "media_type" "StoryType" NOT NULL,
+    "caption" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "stories_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "story_views" (
+    "id" TEXT NOT NULL,
+    "story_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "viewed_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "story_views_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "conversation_participants_conversation_id_user_id_key" ON "conversation_participants"("conversation_id", "user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "reactions_message_id_user_id_emoji_key" ON "reactions"("message_id", "user_id", "emoji");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "story_views_story_id_user_id_key" ON "story_views"("story_id", "user_id");
+
+-- AddForeignKey
+ALTER TABLE "conversation_participants" ADD CONSTRAINT "conversation_participants_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "conversation_participants" ADD CONSTRAINT "conversation_participants_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "messages" ADD CONSTRAINT "messages_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "messages" ADD CONSTRAINT "messages_sender_id_fkey" FOREIGN KEY ("sender_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reactions" ADD CONSTRAINT "reactions_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "messages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reactions" ADD CONSTRAINT "reactions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "stories" ADD CONSTRAINT "stories_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "story_views" ADD CONSTRAINT "story_views_story_id_fkey" FOREIGN KEY ("story_id") REFERENCES "stories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "story_views" ADD CONSTRAINT "story_views_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+</file>
+
+<file path="backend/prisma/migrations/migration_lock.toml">
+# Please do not edit this file manually
+# It should be added in your version-control system (e.g., Git)
+provider = "postgresql"
+</file>
+
+<file path="backend/prisma/schema.prisma">
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  avatarUrl    String?  @map("avatar_url")
+  bio          String?
+  isOnline     Boolean  @default(false) @map("is_online")
+  lastSeenAt   DateTime @default(now()) @map("last_seen_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  sentMessages  Message[]                  @relation("SentMessages")
+  conversations ConversationParticipant[]
+  reactions     Reaction[]
+  stories       Story[]
+  storyViews    StoryView[]
+  
+  twoFactorCodes TwoFactorCode[]
+
+  @@map("users")
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  isGroup   Boolean  @default(false) @map("is_group")
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  userId         String   @map("user_id")
+  joinedAt       DateTime @default(now()) @map("joined_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  FILE
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  conversationId String      @map("conversation_id")
+  senderId       String      @map("sender_id")
+  content        String?
+  messageType    MessageType @default(TEXT) @map("message_type")
+  fileUrl        String?     @map("file_url")
+  fileName       String?     @map("file_name")
+  fileSize       Int?        @map("file_size")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  editedAt       DateTime?   @map("edited_at")
+  deletedAt      DateTime?   @map("deleted_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  reactions    Reaction[]
+
+  @@map("messages")
+}
+
+model Reaction {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  emoji     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@map("reactions")
+}
+
+enum StoryType {
+  IMAGE
+  VIDEO
+}
+
+model Story {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  mediaUrl  String    @map("media_url")
+  mediaType StoryType @map("media_type")
+  caption   String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime  @map("expires_at")
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  views StoryView[]
+
+  @@map("stories")
+}
+
+model StoryView {
+  id       String   @id @default(uuid())
+  storyId  String   @map("story_id")
+  userId   String   @map("user_id")
+  viewedAt DateTime @default(now()) @map("viewed_at")
+
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, userId])
+  @@map("story_views")
+}
+
+model TwoFactorCode {
+  id        String   @id @default(uuid())
+  userId    String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factor_codes")
+}
+
+model MessageSeen {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  seenAt    DateTime @default(now()) @map("seen_at")
+
+  @@unique([messageId, userId])
+  @@map("message_seen")
+}
+</file>
+
+<file path="backend/src/controllers/story.controller.ts">
+import fs from 'fs';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
+import {
+  createStory,
+  getActiveStories,
+  markStoryViewed,
+} from '../services/story.service';
+import { getMessageTypeFromMime } from '../middleware/upload';
+import { io } from '../sockets';
+
+export async function createStoryHandler(req: AuthRequest, res: Response) {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const mediaType = getMessageTypeFromMime(req.file.mimetype);
+  if (mediaType !== 'IMAGE' && mediaType !== 'VIDEO') {
+    return res.status(400).json({ error: 'Stories only support images and videos' });
+  }
+
+  try {
+    const story = await createStory(
+      req.userId!,
+      `/uploads/${req.file.filename}`,
+      mediaType,
+      req.body.caption
+    );
+
+    io.emit('story:new', story);
+    res.status(201).json(story);
+  } catch {
+    res.status(500).json({ error: 'Failed to create story' });
+  }
+}
+
+export async function getStoriesHandler(req: AuthRequest, res: Response) {
+  try {
+    const stories = await getActiveStories();
+    res.json(stories);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch stories' });
+  }
+}
+
+export async function viewStoryHandler(req: AuthRequest, res: Response) {
+  const storyId = Array.isArray(req.params.storyId)
+    ? req.params.storyId[0]
+    : req.params.storyId;
+
+  try {
+    await markStoryViewed(storyId, req.userId!);
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: 'Failed to mark story as viewed' });
+  }
+}
+</file>
+
+<file path="backend/src/controllers/upload.controller.ts">
+import { Request, Response } from 'express';
+import { getMessageTypeFromMime } from '../middleware/upload';
+
+export function uploadHandler(req: Request, res: Response) {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const messageType = getMessageTypeFromMime(req.file.mimetype);
+
+  res.json({
+    fileUrl: `/uploads/${req.file.filename}`,
+    fileName: req.file.originalname,
+    fileSize: req.file.size,
+    messageType,
+  });
+}
+</file>
+
+<file path="backend/src/db/prisma.ts">
+import { PrismaClient } from '@prisma/client';
+
+export const prisma = new PrismaClient();
+</file>
+
+<file path="backend/src/jobs/cleanupStories.ts">
+import { deleteExpiredStories } from '../services/story.service';
+
+export function startCleanupJob() {
+  // ruleaza la fiecare ora
+  setInterval(async () => {
+    const count = await deleteExpiredStories();
+    if (count > 0) console.log(`Cleaned up ${count} expired stories`);
+  }, 60 * 60 * 1000);
+}
+</file>
+
+<file path="backend/src/middleware/auth.ts">
+import { Request, Response, NextFunction } from 'express';
+import { verifyToken } from '../services/auth.service';
+
+export interface AuthRequest extends Request {
+  userId?: string;
+  username?: string;
+}
+
+export function requireAuth(req: AuthRequest, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const payload = verifyToken(token);
+    req.userId = payload.userId;
+    req.username = payload.username;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+</file>
+
+<file path="backend/src/routes/messages.routes.ts">
+import { Router } from 'express';
+import { requireAuth, AuthRequest } from '../middleware/auth';
+import { prisma } from '../db/prisma';
+import type { Response } from 'express';
+
+const router = Router();
+
+router.delete('/:messageId', requireAuth, async (req: AuthRequest, res: Response) => {
+  const messageId = Array.isArray(req.params.messageId)
+    ? req.params.messageId[0]
+    : req.params.messageId;
+
+  const message = await prisma.message.findUnique({ where: { id: messageId } });
+  if (!message) return res.status(404).json({ error: 'Message not found' });
+  if (message.senderId !== req.userId) return res.status(403).json({ error: 'Not your message' });
+
+  const updated = await prisma.message.update({
+    where: { id: messageId },
+    data: { deletedAt: new Date(), content: null },
+  });
+
+  res.json(updated);
+});
+
+export default router;
+</file>
+
+<file path="backend/src/routes/story.routes.ts">
+import { Router } from 'express';
+import { upload } from '../middleware/upload';
+import { requireAuth } from '../middleware/auth';
+import {
+  createStoryHandler,
+  getStoriesHandler,
+  viewStoryHandler,
+} from '../controllers/story.controller';
+
+const router = Router();
+
+router.post('/', requireAuth, upload.single('file'), createStoryHandler);
+router.get('/', requireAuth, getStoriesHandler);
+router.post('/:storyId/view', requireAuth, viewStoryHandler);
+
+export default router;
+</file>
+
+<file path="backend/src/routes/upload.routes.ts">
+import { Router } from 'express';
+import { upload } from '../middleware/upload';
+import { uploadHandler } from '../controllers/upload.controller';
+import { requireAuth } from '../middleware/auth';
+
+const router = Router();
+
+router.post('/', requireAuth, upload.single('file'), uploadHandler);
+
+export default router;
+</file>
+
+<file path="backend/src/routes/users.routes.ts">
+import { Router } from 'express';
+import { requireAuth, AuthRequest } from '../middleware/auth';
+import { prisma } from '../db/prisma';
+import type { Response } from 'express';
+import bcrypt from 'bcrypt';
+import multer from 'multer';
+import path from 'path';
+import crypto from 'crypto';
+
+const router = Router();
+
+router.get('/search', requireAuth, async (req: AuthRequest, res: Response) => {
+  const query = req.query.q as string;
+  if (!query || query.trim().length < 2) {
+    return res.status(400).json({ error: 'Query must be at least 2 characters' });
+  }
+  const users = await prisma.user.findMany({
+    where: {
+      username: { contains: query, mode: 'insensitive' },
+      NOT: { id: req.userId },
+    },
+    select: { id: true, username: true, avatarUrl: true, isOnline: true },
+    take: 10,
+  });
+  res.json(users);
+});
+
+router.get('/conversations', requireAuth, async (req: AuthRequest, res: Response) => {
+  const conversations = await prisma.conversation.findMany({
+    where: {
+      participants: { some: { userId: req.userId } },
+    },
+    include: {
+      participants: {
+        include: {
+          user: {
+            select: { id: true, username: true, avatarUrl: true, isOnline: true, lastSeenAt: true },
+          },
+        },
+      },
+      messages: {
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        include: {
+          sender: { select: { id: true, username: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(conversations);
+});
+
+router.get('/me', requireAuth, async (req: AuthRequest, res: Response) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.userId },
+    select: { id: true, username: true, email: true, avatarUrl: true, bio: true, isOnline: true, createdAt: true },
+  });
+  res.json(user);
+});
+
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, path.join(__dirname, '../../uploads')),
+  filename: (req, file, cb) => {
+    const name = `avatar-${Date.now()}-${crypto.randomBytes(6).toString('hex')}${path.extname(file.originalname)}`;
+    cb(null, name);
+  },
+});
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Only images allowed'));
+  },
+});
+
+router.patch('/me', requireAuth, async (req: AuthRequest, res: Response) => {
+  const { bio, username } = req.body;
+
+  if (username) {
+    const existing = await prisma.user.findFirst({
+      where: { username, NOT: { id: req.userId } },
+    });
+    if (existing) return res.status(409).json({ error: 'Username already taken' });
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: req.userId },
+    data: { ...(bio !== undefined && { bio }), ...(username && { username }) },
+    select: { id: true, username: true, email: true, avatarUrl: true, bio: true },
+  });
+  res.json(updated);
+});
+
+router.post('/me/avatar', requireAuth, avatarUpload.single('avatar'), async (req: AuthRequest, res: Response) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+  const updated = await prisma.user.update({
+    where: { id: req.userId },
+    data: { avatarUrl: `/uploads/${req.file.filename}` },
+    select: { id: true, username: true, avatarUrl: true },
+  });
+  res.json(updated);
+});
+
+router.patch('/me/password', requireAuth, async (req: AuthRequest, res: Response) => {
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await prisma.user.findUnique({ where: { id: req.userId } });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!valid) return res.status(401).json({ error: 'Current password is incorrect' });
+
+  const hash = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({ where: { id: req.userId }, data: { passwordHash: hash } });
+  res.json({ success: true });
+});
+
+export default router;
+</file>
+
+<file path="backend/src/services/email.service.ts">
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT),
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+export async function sendVerificationCode(email: string, code: string) {
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: 'NexusChat — your login code',
+    html: `
+      <div style="font-family: Inter, sans-serif; max-width: 400px; margin: 0 auto; background: #060b14; color: #e8f4ff; border-radius: 16px; padding: 32px; border: 1px solid rgba(0,200,255,0.15);">
+        <h1 style="color: #00c8ff; font-size: 24px; margin-bottom: 8px;">NexusChat</h1>
+        <p style="color: rgba(255,255,255,0.6); margin-bottom: 24px;">Your verification code</p>
+        <div style="background: rgba(0,200,255,0.08); border: 1px solid rgba(0,200,255,0.2); border-radius: 12px; padding: 24px; text-align: center;">
+          <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #00c8ff;">${code}</span>
+        </div>
+        <p style="color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 24px;">
+          This code expires in 10 minutes. If you didn't request this, ignore this email.
+        </p>
+      </div>
+    `,
+  });
+}
+</file>
+
+<file path="backend/src/services/story.service.ts">
+import fs from 'fs';
+import path from 'path';
+import { prisma } from '../db/prisma';
+
+export async function createStory(userId: string, mediaUrl: string, mediaType: string, caption?: string) {
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  return prisma.story.create({
+    data: {
+      userId,
+      mediaUrl,
+      mediaType: mediaType as any,
+      caption,
+      expiresAt,
+    },
+    include: {
+      user: { select: { id: true, username: true, avatarUrl: true } },
+    },
+  });
+}
+
+export async function getActiveStories() {
+  return prisma.story.findMany({
+    where: { expiresAt: { gt: new Date() } },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      user: { select: { id: true, username: true, avatarUrl: true } },
+      views: { select: { userId: true } },
+    },
+  });
+}
+
+export async function markStoryViewed(storyId: string, userId: string) {
+  await prisma.storyView.upsert({
+    where: { storyId_userId: { storyId, userId } },
+    create: { storyId, userId },
+    update: {},
+  });
+}
+
+export async function deleteExpiredStories() {
+  const expired = await prisma.story.findMany({
+    where: { expiresAt: { lt: new Date() } },
+    select: { id: true, mediaUrl: true },
+  });
+
+  for (const story of expired) {
+    const filePath = path.join(__dirname, '../../', story.mediaUrl);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  }
+
+  await prisma.story.deleteMany({
+    where: { expiresAt: { lt: new Date() } },
+  });
+
+  return expired.length;
+}
+</file>
+
+<file path="backend/src/sockets/authSocket.ts">
+import { Socket } from 'socket.io';
+import { verifyToken } from '../services/auth.service';
+import { AuthenticatedSocket } from '../types/socket.types';
+
+export function socketAuthMiddleware(
+  socket: Socket,
+  next: (err?: Error) => void
+) {
+  const token = socket.handshake.auth?.token;
+
+  if (!token) {
+    return next(new Error('Authentication token missing'));
+  }
+
+  try {
+    const payload = verifyToken(token);
+    (socket as AuthenticatedSocket).userId = payload.userId;
+    (socket as AuthenticatedSocket).username = payload.username;
+    next();
+  } catch {
+    next(new Error('Invalid or expired token'));
+  }
+}
+</file>
+
+<file path="backend/src/types/auth.types.ts">
+export interface RegisterInput {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginInput {
+  identifier: string;
+  password: string;
+}
+
+export interface AuthPayload {
+  userId: string;
+  username: string;
+}
+</file>
+
+<file path="backend/src/types/message.types.ts">
+export interface SendMessageInput {
+  conversationId: string;
+  content: string;
+}
+
+export interface StartConversationInput {
+  targetUserId: string;
+}
+</file>
+
+<file path="backend/src/types/socket.types.ts">
+import { Socket } from 'socket.io';
+
+export interface AuthenticatedSocket extends Socket {
+  userId?: string;
+  username?: string;
+}
+</file>
+
+<file path="backend/uploads/.gitkeep">
+
+</file>
+
+<file path="backend/.gitignore">
+node_modules
+# Keep environment variables out of version control
+.env
+
+/src/generated/prisma
+
+/src/generated/prisma
+</file>
+
+<file path="frontend/public/favicon.svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="46" fill="none" viewBox="0 0 48 46"><path fill="#863bff" d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z" style="fill:#863bff;fill:color(display-p3 .5252 .23 1);fill-opacity:1"/><mask id="a" width="48" height="46" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M25.842 44.938c-.664.844-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.183c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.498 0-3.579-1.842-3.579H1.133c-.92 0-1.456-1.04-.92-1.787L9.91.473c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.578 1.842 3.578h11.377c.943 0 1.473 1.088.89 1.832L25.843 44.94z" style="fill:#000;fill-opacity:1"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#ede6ff" rx="5.508" ry="14.704" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -4.47 31.516)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#ede6ff" rx="10.399" ry="29.851" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -39.328 7.883)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#7e14ff" rx="5.508" ry="30.487" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -25.913 -14.639)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -32.644 -3.334)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -34.34 30.47)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#ede6ff" rx="14.072" ry="22.078" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="rotate(93.35 24.506 48.493)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx=".387" cy="8.972" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(39.51 .387 8.972)"/></g><g filter="url(#k)"><ellipse cx="47.523" cy="-6.092" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 47.523 -6.092)"/></g><g filter="url(#l)"><ellipse cx="41.412" cy="6.333" fill="#47bfff" rx="5.971" ry="9.665" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 41.412 6.333)"/></g><g filter="url(#m)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#n)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#o)"><ellipse cx="35.651" cy="29.907" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 35.651 29.907)"/></g><g filter="url(#p)"><ellipse cx="38.418" cy="32.4" fill="#47bfff" rx="5.971" ry="15.297" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 38.418 32.4)"/></g></g><defs><filter id="b" width="60.045" height="41.654" x="-19.77" y="16.149" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-54.613" y="-7.533" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-49.64" y="2.03" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-45.045" y="20.029" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-43.513" y="21.178" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="15.756" y="-17.901" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-27.636" y="-22.853" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="20.116" y="-38.415" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="24.641" y="-11.323" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="8.244" y="-2.416" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="18.713" y="10.588" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter></defs></svg>
+</file>
+
+<file path="frontend/public/icons.svg">
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="bluesky-icon" viewBox="0 0 16 17">
+    <g clip-path="url(#bluesky-clip)"><path fill="#08060d" d="M7.75 7.735c-.693-1.348-2.58-3.86-4.334-5.097-1.68-1.187-2.32-.981-2.74-.79C.188 2.065.1 2.812.1 3.251s.241 3.602.398 4.13c.52 1.744 2.367 2.333 4.07 2.145-2.495.37-4.71 1.278-1.805 4.512 3.196 3.309 4.38-.71 4.987-2.746.608 2.036 1.307 5.91 4.93 2.746 2.72-2.746.747-4.143-1.747-4.512 1.702.189 3.55-.4 4.07-2.145.156-.528.397-3.691.397-4.13s-.088-1.186-.575-1.406c-.42-.19-1.06-.395-2.741.79-1.755 1.24-3.64 3.752-4.334 5.099"/></g>
+    <defs><clipPath id="bluesky-clip"><path fill="#fff" d="M.1.85h15.3v15.3H.1z"/></clipPath></defs>
+  </symbol>
+  <symbol id="discord-icon" viewBox="0 0 20 19">
+    <path fill="#08060d" d="M16.224 3.768a14.5 14.5 0 0 0-3.67-1.153c-.158.286-.343.67-.47.976a13.5 13.5 0 0 0-4.067 0c-.128-.306-.317-.69-.476-.976A14.4 14.4 0 0 0 3.868 3.77C1.546 7.28.916 10.703 1.231 14.077a14.7 14.7 0 0 0 4.5 2.306q.545-.748.965-1.587a9.5 9.5 0 0 1-1.518-.74q.191-.14.372-.293c2.927 1.369 6.107 1.369 8.999 0q.183.152.372.294-.723.437-1.52.74.418.838.963 1.588a14.6 14.6 0 0 0 4.504-2.308c.37-3.911-.63-7.302-2.644-10.309m-9.13 8.234c-.878 0-1.599-.82-1.599-1.82 0-.998.705-1.82 1.6-1.82.894 0 1.614.82 1.599 1.82.001 1-.705 1.82-1.6 1.82m5.91 0c-.878 0-1.599-.82-1.599-1.82 0-.998.705-1.82 1.6-1.82.893 0 1.614.82 1.599 1.82 0 1-.706 1.82-1.6 1.82"/>
+  </symbol>
+  <symbol id="documentation-icon" viewBox="0 0 21 20">
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="m15.5 13.333 1.533 1.322c.645.555.967.833.967 1.178s-.322.623-.967 1.179L15.5 18.333m-3.333-5-1.534 1.322c-.644.555-.966.833-.966 1.178s.322.623.966 1.179l1.534 1.321"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M17.167 10.836v-4.32c0-1.41 0-2.117-.224-2.68-.359-.906-1.118-1.621-2.08-1.96-.599-.21-1.349-.21-2.848-.21-2.623 0-3.935 0-4.983.369-1.684.591-3.013 1.842-3.641 3.428C3 6.449 3 7.684 3 10.154v2.122c0 2.558 0 3.838.706 4.726q.306.383.713.671c.76.536 1.79.64 3.581.66"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M3 10a2.78 2.78 0 0 1 2.778-2.778c.555 0 1.209.097 1.748-.047.48-.129.854-.503.982-.982.145-.54.048-1.194.048-1.749a2.78 2.78 0 0 1 2.777-2.777"/>
+  </symbol>
+  <symbol id="github-icon" viewBox="0 0 19 19">
+    <path fill="#08060d" fill-rule="evenodd" d="M9.356 1.85C5.05 1.85 1.57 5.356 1.57 9.694a7.84 7.84 0 0 0 5.324 7.44c.387.079.528-.168.528-.376 0-.182-.013-.805-.013-1.454-2.165.467-2.616-.935-2.616-.935-.349-.91-.864-1.143-.864-1.143-.71-.48.051-.48.051-.48.787.051 1.2.805 1.2.805.695 1.194 1.817.857 2.268.649.064-.507.27-.857.49-1.052-1.728-.182-3.545-.857-3.545-3.87 0-.857.31-1.558.8-2.104-.078-.195-.349-1 .077-2.078 0 0 .657-.208 2.14.805a7.5 7.5 0 0 1 1.946-.26c.657 0 1.328.092 1.946.26 1.483-1.013 2.14-.805 2.14-.805.426 1.078.155 1.883.078 2.078.502.546.799 1.247.799 2.104 0 3.013-1.818 3.675-3.558 3.87.284.247.528.714.528 1.454 0 1.052-.012 1.896-.012 2.156 0 .208.142.455.528.377a7.84 7.84 0 0 0 5.324-7.441c.013-4.338-3.48-7.844-7.773-7.844" clip-rule="evenodd"/>
+  </symbol>
+  <symbol id="social-icon" viewBox="0 0 20 20">
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M12.5 6.667a4.167 4.167 0 1 0-8.334 0 4.167 4.167 0 0 0 8.334 0"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M2.5 16.667a5.833 5.833 0 0 1 8.75-5.053m3.837.474.513 1.035c.07.144.257.282.414.309l.93.155c.596.1.736.536.307.965l-.723.73a.64.64 0 0 0-.152.531l.207.903c.164.715-.213.991-.84.618l-.872-.52a.63.63 0 0 0-.577 0l-.872.52c-.624.373-1.003.094-.84-.618l.207-.903a.64.64 0 0 0-.152-.532l-.723-.729c-.426-.43-.289-.864.306-.964l.93-.156a.64.64 0 0 0 .412-.31l.513-1.034c.28-.562.735-.562 1.012 0"/>
+  </symbol>
+  <symbol id="x-icon" viewBox="0 0 19 19">
+    <path fill="#08060d" fill-rule="evenodd" d="M1.893 1.98c.052.072 1.245 1.769 2.653 3.77l2.892 4.114c.183.261.333.48.333.486s-.068.089-.152.183l-.522.593-.765.867-3.597 4.087c-.375.426-.734.834-.798.905a1 1 0 0 0-.118.148c0 .01.236.017.664.017h.663l.729-.83c.4-.457.796-.906.879-.999a692 692 0 0 0 1.794-2.038c.034-.037.301-.34.594-.675l.551-.624.345-.392a7 7 0 0 1 .34-.374c.006 0 .93 1.306 2.052 2.903l2.084 2.965.045.063h2.275c1.87 0 2.273-.003 2.266-.021-.008-.02-1.098-1.572-3.894-5.547-2.013-2.862-2.28-3.246-2.273-3.266.008-.019.282-.332 2.085-2.38l2-2.274 1.567-1.782c.022-.028-.016-.03-.65-.03h-.674l-.3.342a871 871 0 0 1-1.782 2.025c-.067.075-.405.458-.75.852a100 100 0 0 1-.803.91c-.148.172-.299.344-.99 1.127-.304.343-.32.358-.345.327-.015-.019-.904-1.282-1.976-2.808L6.365 1.85H1.8zm1.782.91 8.078 11.294c.772 1.08 1.413 1.973 1.425 1.984.016.017.241.02 1.05.017l1.03-.004-2.694-3.766L7.796 5.75 5.722 2.852l-1.039-.004-1.039-.004z" clip-rule="evenodd"/>
+  </symbol>
+</svg>
+</file>
+
+<file path="frontend/src/assets/react.svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
+</file>
+
+<file path="frontend/src/assets/vite.svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="77" height="47" fill="none" aria-labelledby="vite-logo-title" viewBox="0 0 77 47"><title id="vite-logo-title">Vite</title><style>.parenthesis{fill:#000}@media (prefers-color-scheme:dark){.parenthesis{fill:#fff}}</style><path fill="#9135ff" d="M40.151 45.71c-.663.844-2.02.374-2.02-.699V34.708a2.26 2.26 0 0 0-2.262-2.262H24.493c-.92 0-1.457-1.04-.92-1.788l7.479-10.471c1.07-1.498 0-3.578-1.842-3.578H15.443c-.92 0-1.456-1.04-.92-1.788l9.696-13.576c.213-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.472c-1.07 1.497 0 3.578 1.842 3.578h11.376c.944 0 1.474 1.087.89 1.83L40.153 45.712z"/><mask id="a" width="48" height="47" x="14" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M40.047 45.71c-.663.843-2.02.374-2.02-.699V34.708a2.26 2.26 0 0 0-2.262-2.262H24.389c-.92 0-1.457-1.04-.92-1.788l7.479-10.472c1.07-1.497 0-3.578-1.842-3.578H15.34c-.92 0-1.456-1.04-.92-1.788l9.696-13.575c.213-.297.556-.474.92-.474H53.93c.92 0 1.456 1.04.92 1.788L47.37 13.03c-1.07 1.498 0 3.578 1.842 3.578h11.376c.944 0 1.474 1.088.89 1.831L40.049 45.712z"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#eee6ff" rx="5.508" ry="14.704" transform="rotate(269.814 20.96 11.29)scale(-1 1)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#eee6ff" rx="10.399" ry="29.851" transform="rotate(89.814 -16.902 -8.275)scale(1 -1)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#8900ff" rx="5.508" ry="30.487" transform="rotate(89.814 -19.197 -7.127)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#8900ff" rx="5.508" ry="30.599" transform="rotate(89.814 -25.928 4.177)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#8900ff" rx="5.508" ry="30.599" transform="rotate(89.814 -25.738 5.52)scale(1 -1)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#eee6ff" rx="14.072" ry="22.078" transform="rotate(93.35 31.245 55.578)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#8900ff" rx="3.47" ry="21.501" transform="rotate(89.009 35.419 55.202)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#8900ff" rx="3.47" ry="21.501" transform="rotate(89.009 35.419 55.202)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx="14.592" cy="9.743" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(39.51 14.592 9.743)"/></g><g filter="url(#k)"><ellipse cx="61.728" cy="-5.321" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 61.728 -5.32)"/></g><g filter="url(#l)"><ellipse cx="55.618" cy="7.104" fill="#00c2ff" rx="5.971" ry="9.665" transform="rotate(37.892 55.618 7.104)"/></g><g filter="url(#m)"><ellipse cx="12.326" cy="39.103" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 12.326 39.103)"/></g><g filter="url(#n)"><ellipse cx="12.326" cy="39.103" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 12.326 39.103)"/></g><g filter="url(#o)"><ellipse cx="49.857" cy="30.678" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 49.857 30.678)"/></g><g filter="url(#p)"><ellipse cx="52.623" cy="33.171" fill="#00c2ff" rx="5.971" ry="15.297" transform="rotate(37.892 52.623 33.17)"/></g></g><path d="M6.919 0c-9.198 13.166-9.252 33.575 0 46.789h6.215c-9.25-13.214-9.196-33.623 0-46.789zm62.424 0h-6.215c9.198 13.166 9.252 33.575 0 46.789h6.215c9.25-13.214 9.196-33.623 0-46.789" class="parenthesis"/><defs><filter id="b" width="60.045" height="41.654" x="-5.564" y="16.92" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-40.407" y="-6.762" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-35.435" y="2.801" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-30.84" y="20.8" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-29.307" y="21.949" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="29.961" y="-17.13" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="37.754" y="3.055" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="37.754" y="3.055" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-13.43" y="-22.082" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="34.321" y="-37.644" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="38.847" y="-10.552" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-15.081" y="6.78" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-15.081" y="6.78" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="22.45" y="-1.645" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="32.919" y="11.36" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter></defs></svg>
+</file>
+
+<file path="frontend/src/components/chat/TypingIndicator.tsx">
+import { useState, useEffect } from 'react';
+import { getSocket } from '../../services/socket';
+
+interface Props {
+  conversationId: string;
+}
+
+export default function TypingIndicator({ conversationId }: Props) {
+  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleStart = ({ userId, username }: { userId: string; username: string }) => {
+      setTypingUsers((prev) => ({ ...prev, [userId]: username }));
+    };
+
+    const handleStop = ({ userId }: { userId: string }) => {
+      setTypingUsers((prev) => {
+        const next = { ...prev };
+        delete next[userId];
+        return next;
+      });
+    };
+
+    socket.on('typing:start', handleStart);
+    socket.on('typing:stop', handleStop);
+
+    return () => {
+      socket.off('typing:start', handleStart);
+      socket.off('typing:stop', handleStop);
+    };
+  }, [conversationId]);
+
+  const names = Object.values(typingUsers);
+  if (names.length === 0) return null;
+
+  return (
+    <div className="flex items-center gap-2 px-5 pb-2">
+      <div className="flex gap-0.5">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="w-1.5 h-1.5 rounded-full"
+            style={{
+              background: '#00c8ff',
+              animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+      <span className="text-xs" style={{ color: 'rgba(0,200,255,0.5)' }}>
+        {names.join(', ')} {names.length === 1 ? 'is' : 'are'} typing...
+      </span>
+      <style>{`
+        @keyframes bounce {
+          0%, 60%, 100% { transform: translateY(0); }
+          30% { transform: translateY(-4px); }
+        }
+      `}</style>
+    </div>
+  );
+}
+</file>
+
+<file path="frontend/src/components/chat/UserSearch.tsx">
+import { useState, useRef, useEffect } from 'react';
+import api from '../../services/api';
+import { useChat } from '../../contexts/ChatContext';
+
+interface UserResult {
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+  isOnline: boolean;
+}
+
+export default function UserSearch() {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<UserResult[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { startConversation } = useChat();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (query.length < 2) { setResults([]); return; }
+
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const { data } = await api.get(`/api/users/search?q=${query}`);
+        setResults(data);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+  }, [query]);
+
+  async function handleSelect(userId: string) {
+    await startConversation(userId);
+    setQuery('');
+    setResults([]);
+    setOpen(false);
+  }
+
+  return (
+    <div className="relative px-3 py-3 flex-shrink-0">
+      <div
+        className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm cursor-text"
+        style={{
+          background: 'rgba(0,0,0,0.2)',
+          border: '1px solid rgba(0,200,255,0.1)',
+        }}
+        onClick={() => setOpen(true)}
+      >
+        <span style={{ color: 'rgba(255,255,255,0.25)' }}>🔍</span>
+        <input
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          placeholder="Search users..."
+          className="flex-1 bg-transparent text-white placeholder-white/20 focus:outline-none text-sm"
+        />
+      </div>
+
+      {open && (query.length >= 2) && (
+        <div
+          className="absolute left-3 right-3 top-full mt-1 rounded-xl overflow-hidden z-50"
+          style={{
+            background: 'rgba(10,16,32,0.98)',
+            border: '1px solid rgba(0,200,255,0.2)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          }}
+        >
+          {loading && (
+            <div className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              Searching...
+            </div>
+          )}
+          {!loading && results.length === 0 && (
+            <div className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              No users found
+            </div>
+          )}
+          {results.map((u) => (
+            <button
+              key={u.id}
+              onClick={() => handleSelect(u.id)}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
+              style={{ borderBottom: '1px solid rgba(0,200,255,0.06)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0,200,255,0.06)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+            >
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 relative"
+                style={{ background: 'linear-gradient(135deg, #0066ff, #00c8ff)', color: 'white' }}
+              >
+                {u.username[0].toUpperCase()}
+                {u.isOnline && (
+                  <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-green-400 border-2"
+                    style={{ borderColor: '#0a1020' }} />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">{u.username}</p>
+                <p className="text-xs" style={{ color: u.isOnline ? '#22d46a' : 'rgba(255,255,255,0.3)' }}>
+                  {u.isOnline ? 'Online' : 'Offline'}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {open && (
+        <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="frontend/src/components/layout/MainLayout.tsx">
+import Sidebar from '../chat/Sidebar';
+import ChatArea from '../chat/ChatArea';
+import { ChatProvider } from '../../contexts/ChatContext';
+
+export default function MainLayout() {
+  return (
+    <ChatProvider>
+      <div className="h-screen flex overflow-hidden" style={{ background: '#060b14' }}>
+        <Sidebar />
+        <ChatArea />
+      </div>
+    </ChatProvider>
+  );
+}
+</file>
+
+<file path="frontend/src/components/settings/SettingsPanel.tsx">
+import { useState, useRef } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
+
+interface Props {
+  onClose: () => void;
+}
+
+const API = 'http://localhost:3000';
+
+export default function SettingsPanel({ onClose }: Props) {
+  const { user, login, token } = useAuth();
+  const [tab, setTab] = useState<'profile' | 'password' | 'appearance'>('profile');
+  const [username, setUsername] = useState(user?.username || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [currentPwd, setCurrentPwd] = useState('');
+  const [newPwd, setNewPwd] = useState('');
+  const [wallpaper, setWallpaper] = useState(localStorage.getItem('wallpaper') || '');
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [error, setError] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
+  const wallRef = useRef<HTMLInputElement>(null);
+
+  async function saveProfile() {
+    setSaving(true);
+    setMsg(''); setError('');
+    try {
+      const { data } = await api.patch('/api/users/me', { username, bio });
+      if (token) login(data, token);
+      setMsg('Profile updated');
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function savePassword() {
+    if (newPwd.length < 8) { setError('New password too short'); return; }
+    setSaving(true); setMsg(''); setError('');
+    try {
+      await api.patch('/api/users/me/password', { currentPassword: currentPwd, newPassword: newPwd });
+      setMsg('Password changed'); setCurrentPwd(''); setNewPwd('');
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Failed to change password');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const { data } = await api.post('/api/users/me/avatar', formData);
+    if (token) login({ ...user!, ...data }, token);
+  }
+
+  function handleWallpaperChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result as string;
+      localStorage.setItem('wallpaper', url);
+      setWallpaper(url);
+      window.dispatchEvent(new Event('wallpaper-change'));
+    };
+    reader.readAsDataURL(file);
+  }
+
+  const inputStyle = {
+    width: '100%',
+    background: 'rgba(0,0,0,0.3)',
+    border: '1px solid rgba(0,200,255,0.15)',
+    borderRadius: 12,
+    padding: '10px 14px',
+    color: 'white',
+    fontSize: 14,
+    outline: 'none',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: 11,
+    fontWeight: 500,
+    marginBottom: 6,
+    color: 'rgba(0,200,255,0.6)',
+  };
+
+  const TABS = [
+    { id: 'profile', label: 'Profile' },
+    { id: 'password', label: 'Security' },
+    { id: 'appearance', label: 'Appearance' },
+  ] as const;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)' }}>
+      <div className="w-full max-w-md rounded-2xl overflow-hidden"
+        style={{ background: '#0a1020', border: '1px solid rgba(0,200,255,0.15)' }}>
+
+        <div className="flex items-center justify-between px-6 py-4"
+          style={{ borderBottom: '1px solid rgba(0,200,255,0.08)' }}>
+          <h2 className="font-semibold text-white">Settings</h2>
+          <button onClick={onClose} className="text-white/40 hover:text-white transition-colors text-xl">✕</button>
+        </div>
+
+        <div className="flex gap-1 px-4 pt-3"
+          style={{ borderBottom: '1px solid rgba(0,200,255,0.08)' }}>
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => { setTab(t.id); setMsg(''); setError(''); }}
+              className="px-4 py-2 text-sm font-medium rounded-t-lg transition-colors"
+              style={{
+                color: tab === t.id ? '#00c8ff' : 'rgba(255,255,255,0.35)',
+                borderBottom: tab === t.id ? '2px solid #00c8ff' : '2px solid transparent',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="p-6 space-y-4">
+          {tab === 'profile' && (
+            <>
+              <div className="flex flex-col items-center gap-3 mb-6">
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold cursor-pointer relative overflow-hidden group"
+                  style={{ background: 'linear-gradient(135deg, #0066ff, #00c8ff)', color: 'white' }}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  {user?.avatarUrl ? (
+                    <img src={`${API}${user.avatarUrl}`} className="w-full h-full object-cover" alt="" />
+                  ) : (
+                    user?.username[0].toUpperCase()
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ background: 'rgba(0,0,0,0.5)', fontSize: 12 }}>
+                    Change
+                  </div>
+                </div>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Click to change avatar</p>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Username</label>
+                <input value={username} onChange={(e) => setUsername(e.target.value)} style={inputStyle} />
+              </div>
+
+              <div>
+                <label style={labelStyle}>Bio</label>
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Tell people a bit about yourself..."
+                  rows={3}
+                  style={{ ...inputStyle, resize: 'none' }}
+                />
+              </div>
+
+              <div className="pt-1 rounded-xl p-3" style={{ background: 'rgba(0,200,255,0.04)', border: '1px solid rgba(0,200,255,0.08)' }}>
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Email</p>
+                <p className="text-sm text-white mt-0.5">{user?.email}</p>
+              </div>
+
+              <button
+                onClick={saveProfile}
+                disabled={saving}
+                className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #0096ff, #00c8ff)' }}
+              >
+                {saving ? 'Saving...' : 'Save Profile'}
+              </button>
+            </>
+          )}
+
+          {tab === 'password' && (
+            <>
+              <div>
+                <label style={labelStyle}>Current Password</label>
+                <input type="password" value={currentPwd} onChange={(e) => setCurrentPwd(e.target.value)} style={inputStyle} placeholder="••••••••" />
+              </div>
+              <div>
+                <label style={labelStyle}>New Password</label>
+                <input type="password" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} style={inputStyle} placeholder="••••••••" />
+              </div>
+              <button
+                onClick={savePassword}
+                disabled={saving || !currentPwd || !newPwd}
+                className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #0096ff, #00c8ff)' }}
+              >
+                {saving ? 'Changing...' : 'Change Password'}
+              </button>
+            </>
+          )}
+
+          {tab === 'appearance' && (
+            <>
+              <div>
+                <label style={labelStyle}>Chat Wallpaper</label>
+                <div
+                  className="w-full h-32 rounded-xl flex items-center justify-center cursor-pointer transition-colors"
+                  style={{
+                    background: wallpaper ? `url(${wallpaper}) center/cover` : 'rgba(0,0,0,0.2)',
+                    border: '1px solid rgba(0,200,255,0.15)',
+                  }}
+                  onClick={() => wallRef.current?.click()}
+                >
+                  {!wallpaper && (
+                    <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>Click to choose wallpaper</p>
+                  )}
+                </div>
+                <input ref={wallRef} type="file" accept="image/*" className="hidden" onChange={handleWallpaperChange} />
+                {wallpaper && (
+                  <button
+                    onClick={() => { localStorage.removeItem('wallpaper'); setWallpaper(''); window.dispatchEvent(new Event('wallpaper-change')); }}
+                    className="mt-2 text-xs"
+                    style={{ color: 'rgba(255,80,80,0.7)' }}
+                  >
+                    Remove wallpaper
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+
+          {msg && <p className="text-xs rounded-lg px-3 py-2" style={{ color: '#22d46a', background: 'rgba(34,212,106,0.1)', border: '1px solid rgba(34,212,106,0.2)' }}>{msg}</p>}
+          {error && <p className="text-xs rounded-lg px-3 py-2" style={{ color: '#f87171', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>{error}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="frontend/src/components/ui/Avatar.tsx">
+import type { User } from '../../types';
+
+interface Props {
+  user: Pick<User, 'username' | 'avatarUrl' | 'isOnline'>;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+}
+
+const sizes = {
+  xs: 'w-7 h-7 text-xs',
+  sm: 'w-8 h-8 text-xs',
+  md: 'w-10 h-10 text-sm',
+  lg: 'w-12 h-12 text-base',
+};
+
+const dotSizes = {
+  xs: 'w-2 h-2',
+  sm: 'w-2 h-2',
+  md: 'w-2.5 h-2.5',
+  lg: 'w-3 h-3',
+};
+
+export default function Avatar({ user, size = 'md' }: Props) {
+  return (
+    <div className="relative flex-shrink-0">
+      {user.avatarUrl ? (
+        <img
+          src={user.avatarUrl}
+          alt={user.username}
+          className={`${sizes[size]} rounded-full object-cover`}
+        />
+      ) : (
+        <div
+          className={`${sizes[size]} rounded-full bg-avatar flex items-center justify-center font-semibold text-white flex-shrink-0`}
+        >
+          {user.username[0].toUpperCase()}
+        </div>
+      )}
+      {user.isOnline && (
+        <span
+          className={`absolute bottom-0 right-0 ${dotSizes[size]} bg-online rounded-full border-2 border-navy-950`}
+        />
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="frontend/src/components/ui/NotificationBell.tsx">
+import { useState } from 'react';
+import { useChat } from '../../contexts/ChatContext';
+import type { Notification } from '../../types';
+
+export default function NotificationBell() {
+  const { notifications, markNotificationsRead } = useChat();
+  const [open, setOpen] = useState(false);
+
+  const unread = notifications.filter((n) => !n.read).length;
+
+  function toggle() {
+    setOpen((v) => !v);
+    if (!open) markNotificationsRead();
+  }
+
+  function formatTime(date: Date) {
+    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function getIcon(n: Notification) {
+    if (n.type === 'message') return '💬';
+    if (n.type === 'reaction') return n.emoji || '❤️';
+    if (n.type === 'story_reaction') return n.emoji || '🔥';
+    return '🔔';
+  }
+
+  function getText(n: Notification) {
+    if (n.type === 'message') return `${n.senderName}: ${n.content}`;
+    if (n.type === 'reaction') return `${n.senderName} reacted ${n.emoji} to your message`;
+    if (n.type === 'story_reaction') return `${n.senderName} reacted ${n.emoji} to your story`;
+    return '';
+  }
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={toggle}
+        style={{
+          width: 32, height: 32,
+          borderRadius: 8,
+          background: 'rgba(0,200,255,0.08)',
+          border: '1px solid rgba(0,200,255,0.15)',
+          color: 'rgba(0,200,255,0.6)',
+          cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 16, position: 'relative',
+        }}
+        title="Notifications"
+      >
+        🔔
+        {unread > 0 && (
+          <span style={{
+            position: 'absolute', top: -4, right: -4,
+            width: 16, height: 16,
+            background: '#ef4444',
+            borderRadius: '50%',
+            fontSize: 9, fontWeight: 700,
+            color: 'white',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '2px solid #060b14',
+          }}>
+            {unread > 9 ? '9+' : unread}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <>
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 40 }}
+            onClick={() => setOpen(false)}
+          />
+          <div style={{
+            position: 'absolute', top: 40, right: 0,
+            width: 300,
+            background: 'rgba(10,16,32,0.98)',
+            border: '1px solid rgba(0,200,255,0.2)',
+            borderRadius: 12,
+            overflow: 'hidden',
+            zIndex: 50,
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          }}>
+            <div style={{
+              padding: '12px 16px',
+              borderBottom: '1px solid rgba(0,200,255,0.08)',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            }}>
+              <p style={{ color: 'white', fontWeight: 600, fontSize: 13, margin: 0 }}>Notifications</p>
+              {notifications.length > 0 && (
+                <button
+                  onClick={markNotificationsRead}
+                  style={{ fontSize: 11, color: 'rgba(0,200,255,0.6)', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  Mark all read
+                </button>
+              )}
+            </div>
+
+            <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+              {notifications.length === 0 ? (
+                <div style={{ padding: '24px 16px', textAlign: 'center' }}>
+                  <p style={{ fontSize: 24, margin: '0 0 8px' }}>🔔</p>
+                  <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, margin: 0 }}>No notifications yet</p>
+                </div>
+              ) : (
+                notifications.map((n) => (
+                  <div
+                    key={n.id}
+                    style={{
+                      padding: '10px 16px',
+                      borderBottom: '1px solid rgba(0,200,255,0.06)',
+                      display: 'flex', gap: 10, alignItems: 'flex-start',
+                      background: n.read ? 'transparent' : 'rgba(0,200,255,0.04)',
+                    }}
+                  >
+                    <span style={{ fontSize: 18, flexShrink: 0 }}>{getIcon(n)}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, margin: '0 0 2px', lineHeight: 1.4 }}>
+                        {getText(n)}
+                      </p>
+                      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, margin: 0 }}>
+                        {formatTime(n.timestamp)}
+                      </p>
+                    </div>
+                    {!n.read && (
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00c8ff', flexShrink: 0, marginTop: 4 }} />
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="frontend/src/contexts/AuthContext.tsx">
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import type { User } from '../types';
+import { connectSocket, disconnectSocket } from '../services/socket';
+
+interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  login: (user: User, token: string) => void;
+  logout: () => void;
+  isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  });
+
+  const [token, setToken] = useState<string | null>(
+    () => localStorage.getItem('token')
+  );
+
+  useEffect(() => {
+    if (token) connectSocket(token);
+    return () => { disconnectSocket(); };
+  }, [token]);
+
+  function login(user: User, token: string) {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    setUser(user);
+    setToken(token);
+    connectSocket(token);
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setToken(null);
+    disconnectSocket();
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!user }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  return ctx;
+}
+</file>
+
+<file path="frontend/src/hooks/useSocket.ts">
+import { useEffect } from 'react';
+import { getSocket } from '../services/socket';
+
+export function useSocketEvent<T>(event: string, handler: (data: T) => void) {
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    socket.on(event, handler);
+    return () => { socket.off(event, handler); };
+  }, [event, handler]);
+}
+</file>
+
+<file path="frontend/src/services/api.ts">
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost:3000',
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(err);
+  }
+);
+
+export default api;
+</file>
+
+<file path="frontend/src/services/socket.ts">
+import { io, Socket } from 'socket.io-client';
+
+let socket: Socket | null = null;
+
+export function connectSocket(token: string): Socket {
+  socket = io('http://localhost:3000', {
+    auth: { token },
+    reconnection: true,
+    reconnectionDelay: 1000,
+  });
+
+  return socket;
+}
+
+export function getSocket(): Socket | null {
+  return socket;
+}
+
+export function disconnectSocket() {
+  socket?.disconnect();
+  socket = null;
+}
+</file>
+
+<file path="frontend/src/App.css">
+.counter {
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+  margin-bottom: 24px;
+
+  &:hover {
+    border-color: var(--accent-border);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.hero {
+  position: relative;
+
+  .base,
+  .framework,
+  .vite {
+    inset-inline: 0;
+    margin: 0 auto;
+  }
+
+  .base {
+    width: 170px;
+    position: relative;
+    z-index: 0;
+  }
+
+  .framework,
+  .vite {
+    position: absolute;
+  }
+
+  .framework {
+    z-index: 1;
+    top: 34px;
+    height: 28px;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
+      scale(1.4);
+  }
+
+  .vite {
+    z-index: 0;
+    top: 107px;
+    height: 26px;
+    width: auto;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
+      scale(0.8);
+  }
+}
+
+#center {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  place-content: center;
+  place-items: center;
+  flex-grow: 1;
+
+  @media (max-width: 1024px) {
+    padding: 32px 20px 24px;
+    gap: 18px;
+  }
+}
+
+#next-steps {
+  display: flex;
+  border-top: 1px solid var(--border);
+  text-align: left;
+
+  & > div {
+    flex: 1 1 0;
+    padding: 32px;
+    @media (max-width: 1024px) {
+      padding: 24px 20px;
+    }
+  }
+
+  .icon {
+    margin-bottom: 16px;
+    width: 22px;
+    height: 22px;
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+#docs {
+  border-right: 1px solid var(--border);
+
+  @media (max-width: 1024px) {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+#next-steps ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  margin: 32px 0 0;
+
+  .logo {
+    height: 18px;
+  }
+
+  a {
+    color: var(--text-h);
+    font-size: 16px;
+    border-radius: 6px;
+    background: var(--social-bg);
+    display: flex;
+    padding: 6px 12px;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: box-shadow 0.3s;
+
+    &:hover {
+      box-shadow: var(--shadow);
+    }
+    .button-icon {
+      height: 18px;
+      width: 18px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    li {
+      flex: 1 1 calc(50% - 8px);
+    }
+
+    a {
+      width: 100%;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+  }
+}
+
+#spacer {
+  height: 88px;
+  border-top: 1px solid var(--border);
+  @media (max-width: 1024px) {
+    height: 48px;
+  }
+}
+
+.ticks {
+  position: relative;
+  width: 100%;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -4.5px;
+    border: 5px solid transparent;
+  }
+
+  &::before {
+    left: 0;
+    border-left-color: var(--border);
+  }
+  &::after {
+    right: 0;
+    border-right-color: var(--border);
+  }
+}
+</file>
+
+<file path="frontend/src/main.tsx">
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App.tsx';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+</file>
+
+<file path="frontend/.gitignore">
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+</file>
+
+<file path="frontend/.oxlintrc.json">
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  }
+}
+</file>
+
+<file path="frontend/index.html">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="frontend/package.json">
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.19.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2",
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "autoprefixer": "^10.5.4",
+    "oxlint": "^1.75.0",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0"
+  }
+}
+</file>
+
+<file path="frontend/postcss.config.js">
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+</file>
+
+<file path="frontend/README.md">
+# React + TypeScript + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the Oxlint configuration
+
+If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+
+```json
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  }
+}
+```
+
+See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+</file>
+
+<file path="frontend/tsconfig.app.json">
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["vite/client"],
+    "allowArbitraryExtensions": true,
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+</file>
+
+<file path="frontend/tsconfig.json">
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+</file>
+
+<file path="frontend/tsconfig.node.json">
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "module": "nodenext",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts"]
+}
+</file>
+
+<file path="frontend/vite.config.ts">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+</file>
+
+<file path="backend/src/controllers/auth.controller.ts">
+import type { Request, Response } from 'express';
+import * as authService from '../services/auth.service';
+
+export async function registerHandler(req: Request, res: Response) {
+  const { username, email, password } = req.body;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address' });
+  }
+
+  try {
+    const result = await authService.register({ username, email, password });
+    res.status(201).json(result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Registration failed';
+    res.status(409).json({ error: message });
+  }
+}
+
+export async function loginHandler(req: Request, res: Response) {
+  const { identifier, password } = req.body;
+  if (!identifier || !password) {
+    return res.status(400).json({ error: 'Identifier and password are required' });
+  }
+
+  try {
+    const result = await authService.initiateLogin({ identifier, password });
+    res.json(result);
+  } catch {
+    res.status(401).json({ error: 'Invalid credentials' });
+  }
+}
+
+export async function verifyCodeHandler(req: Request, res: Response) {
+  const { userId, code } = req.body;
+  if (!userId || !code) {
+    return res.status(400).json({ error: 'userId and code are required' });
+  }
+
+  try {
+    const result = await authService.verifyLoginCode(userId, code);
+    res.json(result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Verification failed';
+    res.status(401).json({ error: message });
+  }
+}
+</file>
+
+<file path="backend/src/middleware/upload.ts">
+import multer from 'multer';
+import path from 'path';
+import crypto from 'crypto';
+import type { Request } from 'express';
+
+const ALLOWED_TYPES: Record<string, string> = {
+  'image/jpeg': 'IMAGE',
+  'image/png': 'IMAGE',
+  'image/gif': 'IMAGE',
+  'image/webp': 'IMAGE',
+  'video/mp4': 'VIDEO',
+  'video/webm': 'VIDEO',
+  'video/quicktime': 'VIDEO',
+  'video/x-msvideo': 'VIDEO',
+  'audio/mpeg': 'AUDIO',
+  'audio/wav': 'AUDIO',
+  'audio/ogg': 'AUDIO',
+  'audio/webm': 'AUDIO',
+  'application/pdf': 'FILE',
+  'application/msword': 'FILE',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'FILE',
+  'text/plain': 'FILE',
+  'application/zip': 'FILE',
+};
+
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB pentru video
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../../uploads'));
+  },
+  filename: (req, file, cb) => {
+    const unique = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${path.extname(file.originalname)}`;
+    cb(null, unique);
+  },
+});
+
+function fileFilter(req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) {
+  if (ALLOWED_TYPES[file.mimetype]) cb(null, true);
+  else cb(new Error(`File type ${file.mimetype} is not allowed`));
+}
+
+export const upload = multer({ storage, fileFilter, limits: { fileSize: MAX_FILE_SIZE } });
+
+export function getMessageTypeFromMime(mimetype: string): string {
+  return ALLOWED_TYPES[mimetype] || 'FILE';
+}
+</file>
+
+<file path="backend/src/routes/auth.routes.ts">
+import { Router } from 'express';
+import { registerHandler, loginHandler, verifyCodeHandler } from '../controllers/auth.controller';
+
+const router = Router();
+
+router.post('/register', registerHandler);
+router.post('/login', loginHandler);
+router.post('/verify-code', verifyCodeHandler);
+
+export default router;
+</file>
+
+<file path="backend/src/services/auth.service.ts">
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import { prisma } from '../db/prisma';
+import { sendVerificationCode } from './email.service';
+import type { RegisterInput, LoginInput, AuthPayload } from '../types/auth.types';
+
+const SALT_ROUNDS = 10;
+const JWT_EXPIRES_IN = '7d';
+
+export async function register(input: RegisterInput) {
+  const { username, email, password } = input;
+
+  const existing = await prisma.user.findFirst({
+    where: { OR: [{ username }, { email }] },
+  });
+
+  if (existing) throw new Error('Username or email already taken');
+
+  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
+  const user = await prisma.user.create({
+    data: { username, email, passwordHash },
+  });
+
+  const token = signToken({ userId: user.id, username: user.username });
+  return { token, user: { id: user.id, username: user.username, email: user.email } };
+}
+
+export async function initiateLogin(input: LoginInput) {
+  const { identifier, password } = input;
+
+  const user = await prisma.user.findFirst({
+    where: { OR: [{ username: identifier }, { email: identifier }] },
+  });
+
+  if (!user) throw new Error('Invalid credentials');
+
+  const isValid = await bcrypt.compare(password, user.passwordHash);
+  if (!isValid) throw new Error('Invalid credentials');
+
+  // genera un cod de 6 cifre
+  const code = crypto.randomInt(100000, 999999).toString();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  await prisma.twoFactorCode.deleteMany({ where: { userId: user.id } });
+  await prisma.twoFactorCode.create({
+    data: { userId: user.id, code, expiresAt },
+  });
+
+  await sendVerificationCode(user.email, code);
+
+  return { userId: user.id, message: 'Code sent to your email' };
+}
+
+export async function verifyLoginCode(userId: string, code: string) {
+  const record = await prisma.twoFactorCode.findFirst({
+    where: { userId, code, used: false, expiresAt: { gt: new Date() } },
+  });
+
+  if (!record) throw new Error('Invalid or expired code');
+
+  await prisma.twoFactorCode.update({ where: { id: record.id }, data: { used: true } });
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new Error('User not found');
+
+  const token = signToken({ userId: user.id, username: user.username });
+  return { token, user: { id: user.id, username: user.username, email: user.email } };
+}
+
+function signToken(payload: AuthPayload): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET not set');
+  return jwt.sign(payload, secret, { expiresIn: JWT_EXPIRES_IN });
+}
+
+export function verifyToken(token: string): AuthPayload {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET not set');
+  return jwt.verify(token, secret) as AuthPayload;
+}
+</file>
+
+<file path="backend/src/services/conversation.service.ts">
+import { prisma } from '../db/prisma';
+
+export async function getUserConversationIds(userId: string): Promise<string[]> {
+  const participations = await prisma.conversationParticipant.findMany({
+    where: { userId },
+    select: { conversationId: true },
+  });
+
+  return participations.map((p) => p.conversationId);
+}
+
+// gaseste o conversatie 1-la-1 intre doi useri, sau o creeaza daca nu exista
+export async function findOrCreateDirectConversation(userIdA: string, userIdB: string) {
+  const existing = await prisma.conversation.findFirst({
+    where: {
+      isGroup: false,
+      AND: [
+        { participants: { some: { userId: userIdA } } },
+        { participants: { some: { userId: userIdB } } },
+      ],
+    },
+    include: { participants: true },
+  });
+
+  if (existing) return existing;
+
+  return prisma.conversation.create({
+    data: {
+      isGroup: false,
+      participants: {
+        create: [{ userId: userIdA }, { userId: userIdB }],
+      },
+    },
+    include: { participants: true },
+  });
+}
+
+export async function isUserInConversation(userId: string, conversationId: string): Promise<boolean> {
+  const participant = await prisma.conversationParticipant.findUnique({
+    where: { conversationId_userId: { conversationId, userId } },
+  });
+
+  return !!participant;
+}
+</file>
+
+<file path="backend/src/services/reaction.service.ts">
+import { prisma } from '../db/prisma';
+
+function groupReactions(reactions: any[]) {
+  return reactions.reduce((acc, r) => {
+    if (!acc[r.emoji]) acc[r.emoji] = [];
+    acc[r.emoji].push({ userId: r.userId, username: r.user?.username || '' });
+    return acc;
+  }, {} as Record<string, { userId: string; username: string }[]>);
+}
+
+export async function toggleReaction(userId: string, messageId: string, emoji: string) {
+  const existing = await prisma.reaction.findUnique({
+    where: { messageId_userId_emoji: { messageId, userId, emoji } },
+  });
+
+  if (existing) {
+    await prisma.reaction.delete({
+      where: { messageId_userId_emoji: { messageId, userId, emoji } },
+    });
+  } else {
+    await prisma.reaction.create({
+      data: { messageId, userId, emoji },
+    });
+  }
+
+  const reactions = await prisma.reaction.findMany({
+    where: { messageId },
+    include: { user: { select: { id: true, username: true } } },
+  });
+
+  return groupReactions(reactions);
+}
+</file>
+
+<file path="backend/src/sockets/index.ts">
+import { Server as HttpServer } from 'http';
+import { Server } from 'socket.io';
+import { socketAuthMiddleware } from './authSocket';
+import { registerChatHandlers } from './chatSocket';
+import { AuthenticatedSocket } from '../types/socket.types';
+
+export let io: Server;
+
+export function initSocketServer(httpServer: HttpServer) {
+  io = new Server(httpServer, {
+    cors: {
+      origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+      credentials: true,
+    },
+  });
+
+  io.use(socketAuthMiddleware);
+
+  io.on('connection', (socket) => {
+    const authSocket = socket as AuthenticatedSocket;
+    console.log(`User connected: ${authSocket.username}`);
+    registerChatHandlers(io, authSocket);
+  });
+
+  return io;
+}
+</file>
+
+<file path="frontend/src/components/chat/MessageBubble.tsx">
+import { useState, useRef, useEffect } from 'react';
+import type { Message } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
+import { useChat } from '../../contexts/ChatContext';
+
+const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '🎉'];
+const API = 'http://localhost:3000';
+
+interface Props {
+  message: Message;
+  onReply?: (message: Message) => void;
+  isLast?: boolean;
+  otherUserId?: string;
+}
+
+export default function MessageBubble({ message, onReply, isLast, otherUserId }: Props) {
+  const { user } = useAuth();
+  const { toggleReaction, deleteMessage } = useChat();
+  const [showEmojis, setShowEmojis] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const emojiRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const isMine = message.senderId === user?.id;
+  const isSeen = message.seenBy?.includes(otherUserId || '') && isMine;
+
+  // reactia curenta a userului logat pe acest mesaj
+  const myCurrentReaction = Object.entries(message.reactions || {}).find(([, users]) =>
+    users.some((u) => u.userId === user?.id)
+  )?.[0];
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) setShowEmojis(false);
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  function formatTime(dateStr: string) {
+    return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function getAvatarUrl(url: string | null) {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${API}${url}`;
+  }
+
+  function handleEmojiClick(emoji: string) {
+    // daca userul a dat deja aceeasi reactie, o scoate (toggle)
+    // daca a dat alta reactie, o scoate pe cea veche si o pune pe cea noua
+    if (myCurrentReaction && myCurrentReaction !== emoji) {
+      toggleReaction(message.id, myCurrentReaction);
+    }
+    toggleReaction(message.id, emoji);
+    setShowEmojis(false);
+  }
+
+  function copyText() {
+    if (message.content) navigator.clipboard.writeText(message.content);
+    setShowMenu(false);
+  }
+
+  function renderContent() {
+    if (message.deletedAt) {
+      return (
+        <p style={{ fontSize: 13, fontStyle: 'italic', color: 'rgba(255,255,255,0.3)' }}>
+          🚫 Message deleted
+        </p>
+      );
+    }
+
+    if (message.messageType === 'TEXT') {
+      return (
+        <p style={{ fontSize: 13, lineHeight: 1.5, margin: 0, wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+          {message.content}
+        </p>
+      );
+    }
+
+    if (message.messageType === 'IMAGE') {
+      return (
+        <img
+          src={`${API}${message.fileUrl}`}
+          alt={message.fileName || 'image'}
+          style={{ maxWidth: 220, borderRadius: 10, cursor: 'pointer', display: 'block' }}
+          onClick={() => window.open(`${API}${message.fileUrl}`, '_blank')}
+        />
+      );
+    }
+
+    if (message.messageType === 'AUDIO') {
+      return (
+        <audio controls style={{ maxWidth: 220, height: 36 }}>
+          <source src={`${API}${message.fileUrl}`} />
+        </audio>
+      );
+    }
+
+    if (message.messageType === 'VIDEO') {
+      return (
+        <video controls style={{ maxWidth: 220, borderRadius: 10, maxHeight: 280 }} preload="metadata">
+          <source src={`${API}${message.fileUrl}`} type="video/mp4" />
+          <source src={`${API}${message.fileUrl}`} type="video/webm" />
+        </video>
+      );
+    }
+
+    return (
+      <a
+        href={`${API}${message.fileUrl}`}
+        target="_blank"
+        rel="noreferrer"
+        style={{ color: '#00c8ff', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}
+      >
+        📎 {message.fileName}
+        {message.fileSize && (
+          <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>
+            ({(message.fileSize / 1024 / 1024).toFixed(1)}MB)
+          </span>
+        )}
+      </a>
+    );
+  }
+
+  // numai reactiile cu cel putin un user
+  const reactionEntries = Object.entries(message.reactions || {}).filter(([, users]) => users.length > 0);
+
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: isMine ? 'flex-end' : 'flex-start',
+      marginBottom: 12,
+      position: 'relative',
+    }}
+      className="group"
+    >
+      {/* avatar cealalta persoana */}
+      {!isMine && (
+        <div style={{
+          width: 28, height: 28, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 11, fontWeight: 600, color: 'white',
+          flexShrink: 0, marginRight: 8, alignSelf: 'flex-end', marginBottom: 4,
+          overflow: 'hidden',
+        }}>
+          {message.sender.avatarUrl ? (
+            <img
+              src={getAvatarUrl(message.sender.avatarUrl) || ''}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              alt=""
+            />
+          ) : message.sender.username[0].toUpperCase()}
+        </div>
+      )}
+
+      <div style={{ maxWidth: '65%', position: 'relative' }}>
+        {/* bubble */}
+        <div style={{
+          padding: '10px 14px',
+          borderRadius: 16,
+          ...(isMine ? {
+            background: 'linear-gradient(135deg, rgba(0,150,255,0.4), rgba(0,200,255,0.3))',
+            border: '1px solid rgba(0,200,255,0.3)',
+            borderBottomRightRadius: 4,
+            color: '#e8f8ff',
+          } : {
+            background: 'rgba(255,255,255,0.07)',
+            border: '1px solid rgba(0,200,255,0.12)',
+            borderBottomLeftRadius: 4,
+            color: '#d0e8ff',
+          }),
+          backdropFilter: 'blur(10px)',
+        }}>
+          {!isMine && (
+            <p style={{ fontSize: 11, fontWeight: 600, color: '#00c8ff', margin: '0 0 4px' }}>
+              {message.sender.username}
+            </p>
+          )}
+          {renderContent()}
+          {!message.deletedAt && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 4 }}>
+              <p style={{ fontSize: 10, color: isMine ? 'rgba(0,200,255,0.5)' : 'rgba(255,255,255,0.3)', margin: 0 }}>
+                {formatTime(message.createdAt)}
+              </p>
+              {isMine && isLast && (
+                <span style={{ fontSize: 10, color: isSeen ? '#00c8ff' : 'rgba(255,255,255,0.3)' }}>
+                  {isSeen ? '✓✓' : '✓'}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* reactions */}
+        {reactionEntries.length > 0 && (
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4,
+            justifyContent: isMine ? 'flex-end' : 'flex-start',
+          }}>
+            {reactionEntries.map(([emoji, users]) => {
+              const isMyReaction = users.some((u) => u.userId === user?.id);
+              return (
+                <button
+                  key={emoji}
+                  onClick={() => handleEmojiClick(emoji)}
+                  style={{
+                    background: isMyReaction ? 'rgba(0,200,255,0.15)' : 'rgba(0,200,255,0.06)',
+                    border: `1px solid ${isMyReaction ? 'rgba(0,200,255,0.4)' : 'rgba(0,200,255,0.15)'}`,
+                    borderRadius: 100,
+                    padding: '2px 8px',
+                    fontSize: 12,
+                    color: 'rgba(255,255,255,0.8)',
+                    cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}
+                >
+                  {emoji}
+                  <span style={{ color: 'rgba(0,200,255,0.7)', fontSize: 11 }}>{users.length}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* action buttons — apar la hover, pozitionate in interiorul bubble-ului */}
+        {!message.deletedAt && (
+          <div
+            className="opacity-0 group-hover:opacity-100"
+            style={{
+              position: 'absolute',
+              top: -30,
+              right: isMine ? 0 : 'auto',
+              left: isMine ? 'auto' : 0,
+              display: 'flex',
+              gap: 4,
+              transition: 'opacity 0.15s',
+            }}
+          >
+            {/* emoji picker */}
+            <div ref={emojiRef} style={{ position: 'relative' }}>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowEmojis(!showEmojis); setShowMenu(false); }}
+                style={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  background: 'rgba(10,16,32,0.9)',
+                  border: '1px solid rgba(0,200,255,0.2)',
+                  color: 'rgba(255,255,255,0.6)',
+                  cursor: 'pointer', fontSize: 14,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                😊
+              </button>
+              {showEmojis && (
+                <div style={{
+                  position: 'absolute',
+                  top: 32,
+                  left: isMine ? 'auto' : 0,
+                  right: isMine ? 0 : 'auto',
+                  background: 'rgba(10,16,32,0.98)',
+                  border: '1px solid rgba(0,200,255,0.2)',
+                  borderRadius: 12,
+                  padding: 8,
+                  display: 'flex', gap: 4,
+                  zIndex: 100,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                  backdropFilter: 'blur(20px)',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={(e) => { e.stopPropagation(); handleEmojiClick(emoji); }}
+                      style={{
+                        fontSize: 20,
+                        background: myCurrentReaction === emoji ? 'rgba(0,200,255,0.15)' : 'none',
+                        border: myCurrentReaction === emoji ? '1px solid rgba(0,200,255,0.3)' : '1px solid transparent',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        padding: '2px 4px',
+                        transition: 'transform 0.1s',
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.3)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* context menu */}
+            <div ref={menuRef} style={{ position: 'relative' }}>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); setShowEmojis(false); }}
+                style={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  background: 'rgba(10,16,32,0.9)',
+                  border: '1px solid rgba(0,200,255,0.2)',
+                  color: 'rgba(255,255,255,0.6)',
+                  cursor: 'pointer', fontSize: 14,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                ⋯
+              </button>
+              {showMenu && (
+                <div style={{
+                  position: 'absolute',
+                  top: 32,
+                  left: isMine ? 'auto' : 0,
+                  right: isMine ? 0 : 'auto',
+                  background: 'rgba(10,16,32,0.98)',
+                  border: '1px solid rgba(0,200,255,0.2)',
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  zIndex: 100,
+                  minWidth: 130,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                  backdropFilter: 'blur(20px)',
+                }}>
+                  {onReply && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onReply(message); setShowMenu(false); }}
+                      style={{ width: '100%', padding: '9px 14px', textAlign: 'left', fontSize: 13, color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,200,255,0.06)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
+                    >
+                      ↩ Reply
+                    </button>
+                  )}
+                  {message.messageType === 'TEXT' && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); copyText(); }}
+                      style={{ width: '100%', padding: '9px 14px', textAlign: 'left', fontSize: 13, color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,200,255,0.06)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
+                    >
+                      📋 Copy
+                    </button>
+                  )}
+                  {isMine && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteMessage(message.id); setShowMenu(false); }}
+                      style={{ width: '100%', padding: '9px 14px', textAlign: 'left', fontSize: 13, color: 'rgba(239,68,68,0.8)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.06)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
+                    >
+                      🗑 Delete
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="frontend/src/components/chat/MessageInput.tsx">
+import { useState, useRef } from 'react';
+import { useChat } from '../../contexts/ChatContext';
+import { getSocket } from '../../services/socket';
+
+export default function MessageInput() {
+  const { sendMessage, sendFile, activeConversation } = useChat();
+  const [text, setText] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
+  const typingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!text.trim() || !activeConversation) return;
+    sendMessage(text.trim());
+    setText('');
+
+    const socket = getSocket();
+    if (socket) socket.emit('typing:stop', { conversationId: activeConversation.id });
+  }
+
+  function handleTyping(e: React.ChangeEvent<HTMLInputElement>) {
+    setText(e.target.value);
+
+    const socket = getSocket();
+    if (!activeConversation || !socket) return;
+
+    socket.emit('typing:start', { conversationId: activeConversation.id });
+
+    if (typingRef.current) clearTimeout(typingRef.current);
+    typingRef.current = setTimeout(() => {
+      socket.emit('typing:stop', { conversationId: activeConversation.id });
+    }, 1500);
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await sendFile(file);
+    e.target.value = '';
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="flex items-center gap-3 px-4 py-3"
+      style={{
+        borderTop: '1px solid rgba(0,200,255,0.08)',
+        background: 'rgba(255,255,255,0.02)',
+      }}
+    >
+      <input ref={fileRef} type="file" className="hidden" onChange={handleFileChange} />
+
+      <button
+        type="button"
+        onClick={() => fileRef.current?.click()}
+        className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 transition-colors"
+        style={{
+          background: 'rgba(0,200,255,0.06)',
+          border: '1px solid rgba(0,200,255,0.15)',
+          color: 'rgba(0,200,255,0.6)',
+        }}
+      >
+        📎
+      </button>
+
+      <input
+        value={text}
+        onChange={handleTyping}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit(e as any);
+          }
+        }}
+        placeholder={activeConversation ? 'Type a message...' : 'Select a conversation'}
+        disabled={!activeConversation}
+        className="flex-1 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none transition-colors disabled:opacity-40"
+        style={{
+          background: 'rgba(0,0,0,0.3)',
+          border: '1px solid rgba(0,200,255,0.15)',
+        }}
+      />
+
+      <button
+        type="submit"
+        disabled={!text.trim() || !activeConversation}
+        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40 hover:opacity-90"
+        style={{ background: 'linear-gradient(135deg, #0096ff, #00c8ff)' }}
+      >
+        <span className="text-white text-base">➤</span>
+      </button>
+    </form>
+  );
+}
+</file>
+
+<file path="frontend/src/components/stories/StoryViewer.tsx">
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import type { Story } from '../../types';
+import { useChat } from '../../contexts/ChatContext';
+import api from '../../services/api';
+
+interface Props {
+  stories: Story[];
+  initialIndex?: number;
+  onClose: () => void;
+}
+
+const API = 'http://localhost:3000';
+const STORY_EMOJIS = ['❤️', '🔥', '😮', '😂', '👏', '💯'];
+
+function StoryViewerContent({ stories, initialIndex = 0, onClose }: Props) {
+  const { reactToStory } = useChat();
+  const [current, setCurrent] = useState(initialIndex);
+  const [progress, setProgress] = useState(0);
+  const [showReactions, setShowReactions] = useState(false);
+  const [sentReaction, setSentReaction] = useState<string | null>(null);
+
+  const story = stories[current];
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  useEffect(() => {
+    if (!story) return;
+    api.post(`/api/stories/${story.id}/view`).catch(() => {});
+    setProgress(0);
+    setSentReaction(null);
+
+    const interval = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) {
+          clearInterval(interval);
+          if (current < stories.length - 1) {
+            setCurrent((c) => c + 1);
+          } else {
+            onClose();
+          }
+          return 100;
+        }
+        return p + 2;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [current]);
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') goNext();
+      if (e.key === 'ArrowLeft') goPrev();
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [current]);
+
+  function goNext() {
+    if (current < stories.length - 1) setCurrent((c) => c + 1);
+    else onClose();
+  }
+
+  function goPrev() {
+    if (current > 0) setCurrent((c) => c - 1);
+  }
+
+  function handleReact(emoji: string) {
+    reactToStory(story.id, emoji);
+    setSentReaction(emoji);
+    setShowReactions(false);
+    setTimeout(() => setSentReaction(null), 2000);
+  }
+
+  if (!story) return null;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 99999,
+        background: 'rgba(0,0,0,0.97)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        backdropFilter: 'blur(8px)',
+      }}
+    >
+      {/* prev/next buttons esterni */}
+      {current > 0 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); goPrev(); }}
+          style={{
+            position: 'absolute', left: 16,
+            width: 44, height: 44, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.1)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            color: 'white', fontSize: 20, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 10,
+          }}
+        >
+          ‹
+        </button>
+      )}
+      {current < stories.length - 1 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); goNext(); }}
+          style={{
+            position: 'absolute', right: 16,
+            width: 44, height: 44, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.1)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            color: 'white', fontSize: 20, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 10,
+          }}
+        >
+          ›
+        </button>
+      )}
+
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'relative',
+          width: '100%', maxWidth: 400, maxHeight: '92vh',
+          borderRadius: 20, overflow: 'hidden',
+          background: '#000',
+          boxShadow: '0 0 80px rgba(0,200,255,0.15)',
+        }}
+      >
+        {/* progress */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10, display: 'flex', gap: 4, padding: 12 }}>
+          {stories.map((_, i) => (
+            <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.25)', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%', borderRadius: 2, background: '#00c8ff',
+                width: i < current ? '100%' : i === current ? `${progress}%` : '0%',
+              }} />
+            </div>
+          ))}
+        </div>
+
+        {/* header */}
+        <div style={{ position: 'absolute', top: 24, left: 0, right: 0, zIndex: 10, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px' }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
+            flexShrink: 0, overflow: 'hidden',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 14, fontWeight: 600, color: 'white',
+          }}>
+            {story.user.avatarUrl ? (
+              <img src={story.user.avatarUrl.startsWith('http') ? story.user.avatarUrl : `${API}${story.user.avatarUrl}`}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+            ) : story.user.username[0].toUpperCase()}
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ color: 'white', fontWeight: 600, fontSize: 14, margin: 0 }}>{story.user.username}</p>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, margin: 0 }}>
+              {new Date(story.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {' · '}{story.views.length} views
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', color: 'white', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* media */}
+        <div style={{ width: '100%', aspectRatio: '9/16', maxHeight: '92vh' }}>
+          {story.mediaType === 'IMAGE' ? (
+            <img src={`${API}${story.mediaUrl}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+          ) : (
+            <video src={`${API}${story.mediaUrl}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} autoPlay muted playsInline />
+          )}
+        </div>
+
+        {story.caption && (
+          <div style={{ position: 'absolute', bottom: 60, left: 0, right: 0, padding: '32px 16px 12px', background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }}>
+            <p style={{ color: 'white', fontSize: 14, margin: 0 }}>{story.caption}</p>
+          </div>
+        )}
+
+        {/* reaction bar */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }}>
+          {sentReaction ? (
+            <div style={{ fontSize: 32, animation: 'none' }}>{sentReaction}</div>
+          ) : showReactions ? (
+            <div style={{ display: 'flex', gap: 8 }}>
+              {STORY_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => handleReact(emoji)}
+                  style={{ fontSize: 24, background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.3)'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowReactions(true)}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: 20, padding: '6px 16px',
+                color: 'white', fontSize: 13, cursor: 'pointer',
+              }}
+            >
+              React ❤️
+            </button>
+          )}
+        </div>
+
+        {/* nav zones */}
+        <button style={{ position: 'absolute', left: 0, top: 0, bottom: 60, width: '35%', background: 'none', border: 'none', cursor: 'pointer', zIndex: 5 }}
+          onClick={(e) => { e.stopPropagation(); goPrev(); }} />
+        <button style={{ position: 'absolute', right: 0, top: 0, bottom: 60, width: '35%', background: 'none', border: 'none', cursor: 'pointer', zIndex: 5 }}
+          onClick={(e) => { e.stopPropagation(); goNext(); }} />
+      </div>
+    </div>
+  );
+}
+
+export default function StoryViewer(props: Props) {
+  return createPortal(<StoryViewerContent {...props} />, document.body);
+}
+</file>
+
+<file path="frontend/src/types/index.ts">
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  isOnline: boolean;
+  lastSeenAt: string;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string | null;
+  messageType: 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'FILE';
+  fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  createdAt: string;
+  editedAt: string | null;
+  deletedAt: string | null;
+  sender: Pick<User, 'id' | 'username' | 'avatarUrl'>;
+  reactions: Record<string, { userId: string; username: string }[]>;
+  seenBy?: string[];
+}
+
+export interface Conversation {
+  id: string;
+  isGroup: boolean;
+  name: string | null;
+  participants: { userId: string; user: User }[];
+  messages?: Message[];
+  unreadCount?: number;
+}
+
+export interface Story {
+  id: string;
+  userId: string;
+  mediaUrl: string;
+  mediaType: 'IMAGE' | 'VIDEO';
+  caption: string | null;
+  createdAt: string;
+  expiresAt: string;
+  user: Pick<User, 'id' | 'username' | 'avatarUrl'>;
+  views: { userId: string }[];
+}
+
+export interface Notification {
+  id: string;
+  type: 'message' | 'reaction' | 'story_reaction';
+  senderName: string;
+  content?: string;
+  emoji?: string;
+  conversationId?: string;
+  timestamp: Date;
+  read: boolean;
+}
+</file>
+
+<file path="frontend/src/App.tsx">
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AuthPage from './components/auth/AuthPage';
+import MainLayout from './components/layout/MainLayout';
+
+function AppContent() {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <MainLayout /> : <AuthPage />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+</file>
+
+<file path="frontend/tailwind.config.js">
+export default {
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        navy: {
+          950: '#060b14',
+          900: '#0a1020',
+          800: '#0d1829',
+          700: '#111f35',
+          600: '#162640',
+        },
+        cyan: {
+          DEFAULT: '#00c8ff',
+          dim: 'rgba(0,200,255,0.6)',
+          faint: 'rgba(0,200,255,0.12)',
+          glow: 'rgba(0,200,255,0.18)',
+        },
+        blue: {
+          accent: '#0066ff',
+          mid: '#0096ff',
+        },
+        glass: {
+          DEFAULT: 'rgba(255,255,255,0.04)',
+          md: 'rgba(255,255,255,0.07)',
+          border: 'rgba(0,200,255,0.12)',
+          borderhover: 'rgba(0,200,255,0.28)',
+        },
+        online: '#22d46a',
+      },
+      backgroundImage: {
+        'msg-me': 'linear-gradient(135deg, rgba(0,150,255,0.35), rgba(0,200,255,0.25))',
+        'avatar': 'linear-gradient(135deg, #0066ff, #00c8ff)',
+        'send-btn': 'linear-gradient(135deg, #0096ff, #00c8ff)',
+        'story-ring': 'linear-gradient(135deg, #00c8ff, #0066ff)',
+      },
+      backdropBlur: {
+        glass: '20px',
+      },
+    },
+  },
+  plugins: [],
+};
+</file>
+
+<file path=".gitignore">
+node_modules/
+.env
+dist/
+build/
+backend/uploads/*
+!backend/uploads/.gitkeep
+*.log
+.DS_Store
+backend/.agents/
+backend/.claude/
+backend/.windsurf/
+backend/skills-lock.json
+backend/prisma.config.ts
+</file>
+
+<file path="backend/src/services/message.service.ts">
+import { prisma } from '../db/prisma';
+import type { SendMessageInput } from '../types/message.types';
+
+function groupReactions(reactions: any[]) {
+  return reactions.reduce((acc, r) => {
+    if (!acc[r.emoji]) acc[r.emoji] = [];
+    acc[r.emoji].push({ userId: r.userId, username: r.user?.username || '' });
+    return acc;
+  }, {} as Record<string, { userId: string; username: string }[]>);
+}
+
+export async function saveMessage(senderId: string, input: SendMessageInput) {
+  const { conversationId, content } = input;
+
+  const msg = await prisma.message.create({
+    data: { conversationId, senderId, content, messageType: 'TEXT' },
+    include: {
+      sender: { select: { id: true, username: true, avatarUrl: true } },
+      reactions: { include: { user: { select: { id: true, username: true } } } },
+    },
+  });
+
+  return { ...msg, reactions: groupReactions(msg.reactions) };
+}
+
+export async function saveFileMessage(
+  senderId: string,
+  conversationId: string,
+  fileUrl: string,
+  fileName: string,
+  fileSize: number,
+  messageType: string
+) {
+  const msg = await prisma.message.create({
+    data: {
+      conversationId,
+      senderId,
+      messageType: messageType as any,
+      fileUrl,
+      fileName,
+      fileSize,
+    },
+    include: {
+      sender: { select: { id: true, username: true, avatarUrl: true } },
+      reactions: { include: { user: { select: { id: true, username: true } } } },
+    },
+  });
+
+  return { ...msg, reactions: groupReactions(msg.reactions) };
+}
+
+export async function getConversationMessages(conversationId: string, limit = 50) {
+  const msgs = await prisma.message.findMany({
+    where: { conversationId, deletedAt: null },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    include: {
+      sender: { select: { id: true, username: true, avatarUrl: true } },
+      reactions: { include: { user: { select: { id: true, username: true } } } },
+    },
+  });
+
+  return msgs.map((m) => ({ ...m, reactions: groupReactions(m.reactions) }));
+}
+</file>
+
+<file path="backend/tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
+</file>
+
+<file path="frontend/src/components/chat/ChatArea.tsx">
+import { useEffect, useRef, useState } from 'react';
+import { useChat } from '../../contexts/ChatContext';
+import { useAuth } from '../../contexts/AuthContext';
+import MessageBubble from './MessageBubble';
+import MessageInput from './MessageInput';
+import TypingIndicator from './TypingIndicator';
+import StoriesBar from '../stories/StoriesBar';
+
+const API = 'http://localhost:3000';
+
+function getAvatarUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${API}${url}`;
+}
+
+export default function ChatArea() {
+  const { activeConversation, messages } = useChat();
+  const { user } = useAuth();
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const [wallpaper, setWallpaper] = useState(localStorage.getItem('wallpaper') || '');
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    function handleWallpaperChange() {
+      setWallpaper(localStorage.getItem('wallpaper') || '');
+    }
+    window.addEventListener('wallpaper-change', handleWallpaperChange);
+    return () => window.removeEventListener('wallpaper-change', handleWallpaperChange);
+  }, []);
+
+  function getOtherUser(conv: typeof activeConversation) {
+    if (!conv) return null;
+    return conv.participants?.find((p) => p.userId !== user?.id)?.user || null;
+  }
+
+  const otherUser = getOtherUser(activeConversation);
+
+  return (
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        overflow: 'hidden',
+        background: '#060b14',
+        position: 'relative',
+      }}
+    >
+      {/* ambient glow */}
+      <div style={{
+        position: 'absolute', top: 0, right: 0,
+        width: 400, height: 400, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,200,255,0.06) 0%, transparent 70%)',
+        pointerEvents: 'none', zIndex: 0,
+      }} />
+
+      {/* stories bar — fixed height, no horizontal scroll */}
+      <div style={{ flexShrink: 0, zIndex: 1, position: 'relative' }}>
+        <StoriesBar />
+      </div>
+
+      {activeConversation ? (
+        <>
+          {/* chat header */}
+          <div style={{
+            flexShrink: 0,
+            padding: '12px 20px',
+            borderBottom: '1px solid rgba(0,200,255,0.08)',
+            background: 'rgba(255,255,255,0.02)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            zIndex: 1,
+          }}>
+            {otherUser ? (
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
+                  overflow: 'hidden',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 14, fontWeight: 600, color: 'white',
+                }}>
+                  {otherUser.avatarUrl ? (
+                    <img
+                      src={getAvatarUrl(otherUser.avatarUrl) || ''}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      alt=""
+                    />
+                  ) : (
+                    otherUser.username[0].toUpperCase()
+                  )}
+                </div>
+                {otherUser.isOnline && (
+                  <span style={{
+                    position: 'absolute', bottom: 1, right: 1,
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: '#22d46a',
+                    border: '2px solid #060b14',
+                  }} />
+                )}
+              </div>
+            ) : (
+              <div style={{
+                width: 40, height: 40, borderRadius: '50%',
+                background: 'rgba(0,200,255,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 18,
+              }}>
+                👥
+              </div>
+            )}
+            <div>
+              <p style={{ color: 'white', fontWeight: 600, fontSize: 14, margin: 0 }}>
+                {activeConversation.name || otherUser?.username || 'Unknown'}
+              </p>
+              {otherUser?.isOnline ? (
+                <p style={{ color: '#22d46a', fontSize: 11, margin: 0 }}>● Online</p>
+              ) : otherUser?.lastSeenAt ? (
+                <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, margin: 0 }}>
+                  Last seen {new Date(otherUser.lastSeenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          {/* messages area */}
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            padding: '16px 20px',
+            zIndex: 1,
+            position: 'relative',
+            backgroundImage: wallpaper ? `url(${wallpaper})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'local',
+          }}>
+            {wallpaper && (
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'rgba(6,11,20,0.75)',
+                pointerEvents: 'none',
+              }} />
+            )}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {messages.length === 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 12 }}>
+                  <span style={{ fontSize: 40 }}>💬</span>
+                  <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No messages yet. Say hi!</p>
+                </div>
+              )}
+              {messages.map((msg) => (
+                <MessageBubble key={msg.id} message={msg} />
+              ))}
+              <div ref={bottomRef} />
+            </div>
+          </div>
+
+          {/* typing + input */}
+          <div style={{ flexShrink: 0, zIndex: 1 }}>
+            <TypingIndicator conversationId={activeConversation.id} />
+            <MessageInput />
+          </div>
+        </>
+      ) : (
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 16,
+          zIndex: 1,
+          position: 'relative',
+        }}>
+          <div style={{ fontSize: 48, color: 'rgba(0,200,255,0.2)', fontWeight: 700 }}>✦</div>
+          <p style={{ color: 'rgba(0,200,255,0.5)', fontSize: 18, fontWeight: 600 }}>NexusChat</p>
+          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 14 }}>Search for a user to start chatting</p>
+        </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="frontend/src/components/chat/Sidebar.tsx">
+import { useChat } from '../../contexts/ChatContext';
+import { useAuth } from '../../contexts/AuthContext';
+import type { Conversation } from '../../types';
+import UserSearch from './UserSearch';
+import SettingsPanel from '../settings/SettingsPanel';
+import NotificationBell from '../ui/NotificationBell';
+import { useState } from 'react';
+
+const API = 'http://localhost:3000';
+
+function getAvatarUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${API}${url}`;
+}
+
+export default function Sidebar() {
+  const { conversations, setActiveConversation, activeConversation, unreadCounts } = useChat();
+  const { user, logout } = useAuth();
+  const [showSettings, setShowSettings] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  function getOtherParticipant(conv: Conversation) {
+    return conv.participants?.find((p) => p.userId !== user?.id)?.user;
+  }
+
+  function getConversationName(conv: Conversation) {
+    if (conv.name) return conv.name;
+    return getOtherParticipant(conv)?.username || 'Unknown';
+  }
+
+  function getLastMessage(conv: Conversation) {
+    const msgs = conv.messages;
+    if (!msgs || msgs.length === 0) return 'No messages yet';
+    const last = msgs[0];
+    if (last.messageType !== 'TEXT') return `📎 ${last.fileName || 'File'}`;
+    return last.content || '';
+  }
+
+  return (
+    <>
+      <div style={{
+        width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', height: '100vh',
+        background: 'rgba(255,255,255,0.04)',
+        backdropFilter: 'blur(20px)',
+        borderRight: '1px solid rgba(0,200,255,0.12)',
+      }}>
+        {/* header */}
+        <div style={{ padding: '16px 14px', borderBottom: '1px solid rgba(0,200,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <span style={{ fontSize: 18, fontWeight: 700, color: 'white', letterSpacing: -0.5 }}>
+            Nexus<span style={{ color: '#00c8ff' }}>Chat</span>
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <NotificationBell />
+            <button onClick={() => setShowSettings(true)}
+              style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,200,255,0.08)', border: '1px solid rgba(0,200,255,0.15)', color: 'rgba(0,200,255,0.6)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              ⚙
+            </button>
+            <button onClick={() => setShowLogoutConfirm(true)}
+              style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,50,50,0.08)', border: '1px solid rgba(255,50,50,0.15)', color: 'rgba(255,80,80,0.7)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              ⏻
+            </button>
+          </div>
+        </div>
+
+        <UserSearch />
+
+        {/* conversations list */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '4px 8px' }}>
+          {conversations.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+              <p style={{ fontSize: 28, margin: '0 0 8px' }}>💬</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Search for a user to start chatting</p>
+            </div>
+          ) : conversations.map((conv) => {
+            const other = getOtherParticipant(conv);
+            const isActive = conv.id === activeConversation?.id;
+            const unread = unreadCounts[conv.id] || 0;
+
+            return (
+              <button
+                key={conv.id}
+                onClick={() => setActiveConversation(conv)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 10px', borderRadius: 10, marginBottom: 2,
+                  background: isActive ? 'rgba(0,200,255,0.08)' : 'transparent',
+                  border: isActive ? '1px solid rgba(0,200,255,0.2)' : '1px solid transparent',
+                  cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                {/* avatar */}
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 15, fontWeight: 600, color: 'white', overflow: 'hidden',
+                  }}>
+                    {other?.avatarUrl ? (
+                      <img src={getAvatarUrl(other.avatarUrl) || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                    ) : (
+                      (other?.username || '?')[0].toUpperCase()
+                    )}
+                  </div>
+                  {other?.isOnline && (
+                    <span style={{ position: 'absolute', bottom: 1, right: 1, width: 10, height: 10, borderRadius: '50%', background: '#22d46a', border: '2px solid #060b14' }} />
+                  )}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'white', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {getConversationName(conv)}
+                    </p>
+                    {unread > 0 && (
+                      <span style={{
+                        minWidth: 18, height: 18, borderRadius: 100,
+                        background: '#00c8ff', color: '#060b14',
+                        fontSize: 10, fontWeight: 700,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        padding: '0 4px', flexShrink: 0, marginLeft: 4,
+                      }}>
+                        {unread > 99 ? '99+' : unread}
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: 11, color: unread > 0 ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: unread > 0 ? 500 : 400 }}>
+                    {getLastMessage(conv)}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* user footer */}
+        <div style={{ padding: '12px 14px', borderTop: '1px solid rgba(0,200,255,0.08)', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 12, fontWeight: 600, color: 'white', overflow: 'hidden',
+            }}>
+              {user?.avatarUrl ? (
+                <img src={getAvatarUrl(user.avatarUrl) || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+              ) : (
+                (user?.username || 'U')[0].toUpperCase()
+              )}
+            </div>
+            <span style={{ position: 'absolute', bottom: 0, right: 0, width: 8, height: 8, borderRadius: '50%', background: '#22d46a', border: '2px solid #060b14' }} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'white', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.username}</p>
+            <p style={{ fontSize: 10, color: '#22d46a', margin: 0 }}>Online</p>
+          </div>
+        </div>
+      </div>
+
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+
+      {showLogoutConfirm && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ width: '100%', maxWidth: 300, borderRadius: 20, padding: 24, textAlign: 'center', background: '#0a1020', border: '1px solid rgba(0,200,255,0.15)' }}>
+            <p style={{ fontSize: 18, fontWeight: 600, color: 'white', margin: '0 0 8px' }}>Sign out?</p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 24px' }}>
+              You'll need to sign in again to access your messages.
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setShowLogoutConfirm(false)}
+                style={{ flex: 1, padding: '10px 0', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                Cancel
+              </button>
+              <button onClick={() => { logout(); setShowLogoutConfirm(false); }}
+                style={{ flex: 1, padding: '10px 0', borderRadius: 10, background: 'rgba(239,68,68,0.8)', border: 'none', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                Sign out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+</file>
+
+<file path="frontend/src/components/stories/StoriesBar.tsx">
+import { useEffect, useState } from 'react';
+import { useChat } from '../../contexts/ChatContext';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
+import StoryViewer from './StoryViewer';
+import type { Story } from '../../types';
+
+export default function StoriesBar() {
+  const { stories, loadStories } = useChat();
+  const { user } = useAuth();
+  const [viewerData, setViewerData] = useState<{ stories: Story[]; index: number } | null>(null);
+
+  useEffect(() => { loadStories(); }, []);
+
+  async function handleAddStory() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,video/*';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append('file', file);
+      await api.post('/api/stories', formData);
+      loadStories();
+    };
+    input.click();
+  }
+
+  const grouped = stories.reduce((acc, story) => {
+    if (!acc[story.userId]) acc[story.userId] = { user: story.user, stories: [] };
+    acc[story.userId].stories.push(story);
+    return acc;
+  }, {} as Record<string, { user: any; stories: Story[] }>);
+
+  return (
+    <>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '12px 16px',
+        borderBottom: '1px solid rgba(0,200,255,0.08)',
+        background: 'rgba(255,255,255,0.02)',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        flexShrink: 0,
+        scrollbarWidth: 'none',
+      } as React.CSSProperties}>
+
+        {/* buton add story */}
+        <button
+          onClick={handleAddStory}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          <div style={{
+            width: 44, height: 44, borderRadius: '50%',
+            background: 'rgba(0,200,255,0.06)',
+            border: '1px dashed rgba(0,200,255,0.35)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 20, color: '#00c8ff',
+          }}>
+            +
+          </div>
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>Add</span>
+        </button>
+
+        {Object.values(grouped).map(({ user: storyUser, stories: userStories }) => {
+          const hasUnviewed = userStories.some(
+            (s) => !s.views.find((v) => v.userId === user?.id)
+          );
+
+          return (
+            <button
+              key={storyUser.id}
+              onClick={() => setViewerData({ stories: userStories, index: 0 })}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              <div style={{
+                width: 44, height: 44, borderRadius: '50%', padding: 2,
+                background: hasUnviewed
+                  ? 'linear-gradient(135deg, #00c8ff, #0066ff)'
+                  : 'rgba(0,200,255,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: '50%',
+                  background: '#0d1829',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  overflow: 'hidden',
+                }}>
+                  {storyUser.avatarUrl ? (
+                    <img
+                      src={storyUser.avatarUrl.startsWith('http') ? storyUser.avatarUrl : `http://localhost:3000${storyUser.avatarUrl}`}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      alt=""
+                    />
+                  ) : (
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#00c8ff' }}>
+                      {storyUser.username[0].toUpperCase()}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', maxWidth: 44, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {storyUser.username}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {viewerData && (
+        <StoryViewer
+          stories={viewerData.stories}
+          initialIndex={viewerData.index}
+          onClose={() => setViewerData(null)}
+        />
+      )}
+    </>
+  );
+}
+</file>
+
+<file path="frontend/src/contexts/ChatContext.tsx">
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
+import type { Conversation, Message, Story, Notification } from '../types';
+import { getSocket } from '../services/socket';
+import api from '../services/api';
+import { useAuth } from './AuthContext';
+
+interface ChatContextType {
+  conversations: Conversation[];
+  activeConversation: Conversation | null;
+  messages: Message[];
+  stories: Story[];
+  notifications: Notification[];
+  unreadCounts: Record<string, number>;
+  setActiveConversation: (conv: Conversation) => void;
+  sendMessage: (content: string) => void;
+  sendFile: (file: File) => Promise<void>;
+  toggleReaction: (messageId: string, emoji: string) => void;
+  reactToStory: (storyId: string, emoji: string) => void;
+  startConversation: (targetUserId: string) => Promise<void>;
+  loadStories: () => Promise<void>;
+  loadConversations: () => Promise<void>;
+  deleteMessage: (messageId: string) => Promise<void>;
+  markNotificationsRead: () => void;
+}
+
+const ChatContext = createContext<ChatContextType | null>(null);
+
+function playNotifSound() {
+  try {
+    const ctx = new AudioContext();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(
+      440,
+      ctx.currentTime + 0.1
+    );
+
+    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.001,
+      ctx.currentTime + 0.3
+    );
+
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.3);
+  } catch {
+    // browser poate bloca AudioContext fara interactiune utilizator
+  }
+}
+
+export function ChatProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversation, setActiveConversationState] =
+    useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+
+  const activeConvRef = useRef<Conversation | null>(null);
+
+  async function loadConversations() {
+    try {
+      const { data } = await api.get('/api/users/conversations');
+      setConversations(data);
+    } catch (err) {
+      console.error('Failed to load conversations', err);
+    }
+  }
+
+  useEffect(() => {
+    if (!user) return;
+
+    loadConversations();
+  }, [user]);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    if (!socket) return;
+
+    function handleNewMessage(message: Message) {
+      const isActive =
+        activeConvRef.current?.id === message.conversationId;
+
+      if (isActive) {
+        setMessages((prev) => {
+          if (prev.find((m) => m.id === message.id)) {
+            return prev;
+          }
+
+          return [...prev, message];
+        });
+
+        // Marca mesajul ca vazut daca suntem in conversatie
+        const currentSocket = getSocket();
+
+        currentSocket?.emit('message:read', {
+          conversationId: message.conversationId,
+        });
+      } else {
+        // Incrementeaza unread count
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [message.conversationId]:
+            (prev[message.conversationId] || 0) + 1,
+        }));
+      }
+
+      setConversations((prev) => {
+        const exists = prev.find(
+          (c) => c.id === message.conversationId
+        );
+
+        if (exists) {
+          return [
+            { ...exists, messages: [message] },
+            ...prev.filter((c) => c.id !== message.conversationId),
+          ];
+        }
+
+        loadConversations();
+        return prev;
+      });
+    }
+
+    function handleNotificationMessage(data: any) {
+      playNotifSound();
+
+      const notif: Notification = {
+        id: Date.now().toString(),
+        type: 'message',
+        senderName: data.senderName,
+        content: data.content,
+        conversationId: data.conversationId,
+        timestamp: new Date(),
+        read: false,
+      };
+
+      setNotifications((prev) => [
+        notif,
+        ...prev.slice(0, 19),
+      ]);
+
+      if (Notification.permission === 'granted') {
+        new Notification(`${data.senderName}`, {
+          body: data.content,
+          icon: '/favicon.svg',
+        });
+      }
+    }
+
+    function handleNotificationReaction(data: any) {
+      const notif: Notification = {
+        id: Date.now().toString(),
+        type:
+          data.type === 'story'
+            ? 'story_reaction'
+            : 'reaction',
+        senderName: data.senderName,
+        emoji: data.emoji,
+        timestamp: new Date(),
+        read: false,
+      };
+
+      setNotifications((prev) => [
+        notif,
+        ...prev.slice(0, 19),
+      ]);
+    }
+
+    function handleReactionUpdated({
+      messageId,
+      reactions,
+    }: {
+      messageId: string;
+      reactions: any;
+    }) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? { ...m, reactions }
+            : m
+        )
+      );
+    }
+
+    function handleMessageSeen({
+      conversationId,
+      userId: seenByUserId,
+    }: any) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.conversationId === conversationId
+            ? {
+                ...m,
+                seenBy: [
+                  ...(m.seenBy || []),
+                  seenByUserId,
+                ],
+              }
+            : m
+        )
+      );
+    }
+
+    function handleStoryNew(story: Story) {
+      setStories((prev) => [story, ...prev]);
+    }
+
+    socket.on('message:new', handleNewMessage);
+    socket.on(
+      'notification:message',
+      handleNotificationMessage
+    );
+    socket.on(
+      'notification:reaction',
+      handleNotificationReaction
+    );
+    socket.on(
+      'reaction:updated',
+      handleReactionUpdated
+    );
+    socket.on(
+      'message:seen',
+      handleMessageSeen
+    );
+    socket.on('story:new', handleStoryNew);
+
+    return () => {
+      socket.off(
+        'message:new',
+        handleNewMessage
+      );
+      socket.off(
+        'notification:message',
+        handleNotificationMessage
+      );
+      socket.off(
+        'notification:reaction',
+        handleNotificationReaction
+      );
+      socket.off(
+        'reaction:updated',
+        handleReactionUpdated
+      );
+      socket.off(
+        'message:seen',
+        handleMessageSeen
+      );
+      socket.off(
+        'story:new',
+        handleStoryNew
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  function setActiveConversation(conv: Conversation) {
+    activeConvRef.current = conv;
+    setActiveConversationState(conv);
+    setMessages([]);
+
+    setUnreadCounts((prev) => {
+      const next = { ...prev };
+      delete next[conv.id];
+      return next;
+    });
+
+    const socket = getSocket();
+
+    if (!socket) return;
+
+    socket.emit(
+      'conversation:history',
+      { conversationId: conv.id },
+      (res: any) => {
+        if (res.success) {
+          setMessages(res.messages);
+        }
+      }
+    );
+  }
+
+  function sendMessage(content: string) {
+    if (!activeConvRef.current) return;
+
+    const socket = getSocket();
+
+    socket?.emit('message:send', {
+      conversationId: activeConvRef.current.id,
+      content,
+    });
+  }
+
+  async function sendFile(file: File) {
+    if (!activeConvRef.current) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const { data } = await api.post(
+      '/api/upload',
+      formData
+    );
+
+    const socket = getSocket();
+
+    socket?.emit('message:sendFile', {
+      conversationId: activeConvRef.current.id,
+      ...data,
+    });
+  }
+
+  function toggleReaction(
+    messageId: string,
+    emoji: string
+  ) {
+    const socket = getSocket();
+
+    socket?.emit('reaction:toggle', {
+      messageId,
+      emoji,
+    });
+  }
+
+  function reactToStory(
+    storyId: string,
+    emoji: string
+  ) {
+    const socket = getSocket();
+
+    socket?.emit('story:react', {
+      storyId,
+      emoji,
+    });
+  }
+
+  async function startConversation(
+    targetUserId: string
+  ) {
+    const socket = getSocket();
+
+    if (!socket) return;
+
+    socket.emit(
+      'conversation:start',
+      { targetUserId },
+      (res: any) => {
+        if (!res.success) return;
+
+        setConversations((prev) => {
+          const exists = prev.find(
+            (c) => c.id === res.conversation.id
+          );
+
+          if (exists) {
+            setActiveConversation(exists);
+            return prev;
+          }
+
+          setActiveConversation(
+            res.conversation
+          );
+
+          return [
+            res.conversation,
+            ...prev,
+          ];
+        });
+      }
+    );
+  }
+
+  async function loadStories() {
+    try {
+      const { data } = await api.get(
+        '/api/stories'
+      );
+
+      setStories(data);
+    } catch {
+      // ignore
+    }
+  }
+
+  async function deleteMessage(
+    messageId: string
+  ) {
+    await api.delete(
+      `/api/messages/${messageId}`
+    );
+
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === messageId
+          ? {
+              ...m,
+              deletedAt:
+                new Date().toISOString(),
+              content: null,
+            }
+          : m
+      )
+    );
+  }
+
+  function markNotificationsRead() {
+    setNotifications((prev) =>
+      prev.map((n) => ({
+        ...n,
+        read: true,
+      }))
+    );
+  }
+
+  return (
+    <ChatContext.Provider
+      value={{
+        conversations,
+        activeConversation,
+        messages,
+        stories,
+        notifications,
+        unreadCounts,
+        setActiveConversation,
+        sendMessage,
+        sendFile,
+        toggleReaction,
+        reactToStory,
+        startConversation,
+        loadStories,
+        loadConversations,
+        deleteMessage,
+        markNotificationsRead,
+      }}
+    >
+      {children}
+    </ChatContext.Provider>
+  );
+}
+
+export function useChat() {
+  const ctx = useContext(ChatContext);
+
+  if (!ctx) {
+    throw new Error(
+      'useChat must be used inside ChatProvider'
+    );
+  }
+
+  return ctx;
+}
+</file>
+
+<file path="frontend/src/index.css">
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #060b14;
+  color: #e8f4ff;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 200, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 200, 255, 0.4);
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 200, 255, 0.12);
+  }
+
+  .glass-md {
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 200, 255, 0.15);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 20px rgba(0, 200, 255, 0.15);
+  }
+
+  .border-glass {
+    border: 1px solid rgba(0, 200, 255, 0.12);
+  }
+
+  .border-glass-hover:hover {
+    border-color: rgba(0, 200, 255, 0.28);
+  }
+
+  .text-cyan-dim {
+    color: rgba(0, 200, 255, 0.6);
+  }
+
+  .stories-bar::-webkit-scrollbar {
+    display: none;
+  }
+}
+</file>
+
+<file path="backend/package.json">
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.2.0",
+    "nodemailer": "^9.0.5",
+    "prisma": "^6.19.3",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.2.0",
+    "@types/node": "^26.2.0",
+    "@types/nodemailer": "^8.0.1",
+    "socket.io-client": "^4.8.3",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "bcrypt@6.0.0": true,
+    "esbuild@0.28.2": true,
+    "prisma@6.19.3": true
+  }
+}
+</file>
+
+<file path="frontend/src/components/auth/AuthPage.tsx">
+import { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
+
+interface PasswordStrength {
+  hasUpper: boolean;
+  hasLower: boolean;
+  hasNumber: boolean;
+  hasSpecial: boolean;
+  hasLength: boolean;
+}
+
+function checkPassword(pwd: string): PasswordStrength {
+  return {
+    hasUpper: /[A-Z]/.test(pwd),
+    hasLower: /[a-z]/.test(pwd),
+    hasNumber: /[0-9]/.test(pwd),
+    hasSpecial: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(pwd),
+    hasLength: pwd.length >= 8,
+  };
+}
+
+function StrengthRow({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span style={{ color: ok ? '#22d46a' : 'rgba(255,255,255,0.25)', fontSize: 12 }}>
+        {ok ? '✓' : '○'}
+      </span>
+      <span style={{ fontSize: 11, color: ok ? 'rgba(34,212,106,0.8)' : 'rgba(255,255,255,0.3)' }}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+type Step = 'credentials' | 'verify';
+
+export default function AuthPage() {
+  const { login } = useAuth();
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [step, setStep] = useState<Step>('credentials');
+  const [pendingUserId, setPendingUserId] = useState('');
+  const [form, setForm] = useState({ username: '', email: '', password: '', identifier: '' });
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showStrength, setShowStrength] = useState(false);
+
+  const strength = checkPassword(form.password);
+  const passwordValid = Object.values(strength).every(Boolean);
+
+  const inputStyle = {
+    background: 'rgba(0,0,0,0.3)',
+    border: '1px solid rgba(0,200,255,0.15)',
+  };
+
+  const inputClass = "w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-colors";
+
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: 11,
+    fontWeight: 500,
+    marginBottom: 6,
+    color: 'rgba(0,200,255,0.6)',
+  };
+
+  async function handleCredentials(e: React.FormEvent) {
+  e.preventDefault();
+  setError('');
+
+  if (mode === 'register') {
+    if (!passwordValid) { setError('Password does not meet all requirements'); return; }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) { setError('Please enter a valid email address'); return; }
+  }
+
+  setLoading(true);
+  try {
+    if (mode === 'register') {
+      const { data } = await api.post('/api/auth/register', {
+        username: form.username,
+        email: form.email,
+        password: form.password,
+      });
+      login(data.user, data.token);
+    } else {
+      const { data } = await api.post('/api/auth/login', {
+        identifier: form.identifier,
+        password: form.password,
+      });
+
+      if (data.userId) {
+        setPendingUserId(data.userId);
+        setStep('verify');
+      } else if (data.token) {
+        login(data.user, data.token);
+      }
+    }
+  } catch (err: any) {
+    setError(err.response?.data?.error || 'Something went wrong');
+  } finally {
+    setLoading(false);
+  }
+}
+
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const { data } = await api.post('/api/auth/verify-code', {
+        userId: pendingUserId,
+        code: code.trim(),
+      });
+      login(data.user, data.token);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Invalid code');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+      style={{ background: '#060b14' }}
+    >
+      <div className="absolute top-[-100px] left-[10%] w-[400px] h-[400px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(0,200,255,0.12) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-[-80px] right-[15%] w-[300px] h-[300px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(0,100,255,0.10) 0%, transparent 70%)' }} />
+
+      <div className="w-full max-w-md relative z-10">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
+            Nexus<span style={{ color: '#00c8ff' }}>Chat</span>
+          </h1>
+          <p className="text-sm" style={{ color: 'rgba(0,200,255,0.5)' }}>
+            Real-time messaging, reimagined
+          </p>
+        </div>
+
+        <div className="rounded-2xl p-8"
+          style={{ background: 'rgba(255,255,255,0.04)', backdropFilter: 'blur(20px)', border: '1px solid rgba(0,200,255,0.12)' }}>
+
+          {step === 'verify' ? (
+            <form onSubmit={handleVerifyCode} className="space-y-4">
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-3">📧</div>
+                <p className="text-white font-semibold">Check your email</p>
+                <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  We sent a 6-digit code to your email address
+                </p>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Verification Code</label>
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="000000"
+                  className={inputClass}
+                  style={{
+                    ...inputStyle,
+                    textAlign: 'center',
+                    fontSize: 24,
+                    letterSpacing: 8,
+                    fontWeight: 700,
+                  }}
+                  maxLength={6}
+                  required
+                  autoFocus
+                />
+              </div>
+
+              {error && (
+                <p className="text-xs rounded-lg px-3 py-2"
+                  style={{ color: '#f87171', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || code.length !== 6}
+                className="w-full text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #0096ff, #00c8ff)' }}
+              >
+                {loading ? 'Verifying...' : 'Verify Code'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setStep('credentials'); setCode(''); setError(''); }}
+                className="w-full text-sm py-2"
+                style={{ color: 'rgba(255,255,255,0.3)' }}
+              >
+                ← Back to login
+              </button>
+            </form>
+          ) : (
+            <>
+              <div className="flex mb-6 p-1 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                {(['login', 'register'] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => { setMode(m); setError(''); setShowStrength(false); }}
+                    className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all"
+                    style={{
+                      background: mode === m ? 'linear-gradient(135deg, #0096ff, #00c8ff)' : 'transparent',
+                      color: mode === m ? 'white' : 'rgba(255,255,255,0.4)',
+                    }}
+                  >
+                    {m === 'login' ? 'Sign In' : 'Create Account'}
+                  </button>
+                ))}
+              </div>
+
+              <form onSubmit={handleCredentials} className="space-y-4">
+                {mode === 'register' && (
+                  <>
+                    <div>
+                      <label style={labelStyle}>Username</label>
+                      <input
+                        type="text"
+                        value={form.username}
+                        onChange={(e) => setForm({ ...form, username: e.target.value })}
+                        placeholder="yourname"
+                        className={inputClass}
+                        style={inputStyle}
+                        required
+                        minLength={3}
+                      />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Email</label>
+                      <input
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        placeholder="you@example.com"
+                        className={inputClass}
+                        style={inputStyle}
+                        required
+                      />
+                    </div>
+                  </>
+                )}
+
+                {mode === 'login' && (
+                  <div>
+                    <label style={labelStyle}>Username or Email</label>
+                    <input
+                      type="text"
+                      value={form.identifier}
+                      onChange={(e) => setForm({ ...form, identifier: e.target.value })}
+                      placeholder="yourname or you@example.com"
+                      className={inputClass}
+                      style={inputStyle}
+                      required
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label style={labelStyle}>Password</label>
+                  <input
+                    type="password"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    onFocus={() => mode === 'register' && setShowStrength(true)}
+                    placeholder="••••••••"
+                    className={inputClass}
+                    style={inputStyle}
+                    required
+                  />
+                  {mode === 'register' && showStrength && (
+                    <div className="mt-2 p-3 rounded-xl space-y-1"
+                      style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0,200,255,0.1)' }}>
+                      <StrengthRow ok={strength.hasLength} label="At least 8 characters" />
+                      <StrengthRow ok={strength.hasUpper} label="One uppercase letter (A-Z)" />
+                      <StrengthRow ok={strength.hasLower} label="One lowercase letter (a-z)" />
+                      <StrengthRow ok={strength.hasNumber} label="One number (0-9)" />
+                      <StrengthRow ok={strength.hasSpecial} label="One special character (!@#$...)" />
+                    </div>
+                  )}
+                </div>
+
+                {error && (
+                  <p className="text-xs rounded-lg px-3 py-2"
+                    style={{ color: '#f87171', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || (mode === 'register' && !passwordValid)}
+                  className="w-full text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg, #0096ff, #00c8ff)' }}
+                >
+                  {loading
+                    ? 'Loading...'
+                    : mode === 'login'
+                    ? 'Sign In'
+                    : 'Create Account'}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="backend/src/server.ts">
+import express from 'express';
+import { createServer } from 'http';
+import path from 'path';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
+import authRoutes from './routes/auth.routes';
+import uploadRoutes from './routes/upload.routes';
+import storyRoutes from './routes/story.routes';
+import { initSocketServer } from './sockets';
+import { startCleanupJob } from './jobs/cleanupStories';
+import usersRoutes from './routes/users.routes';
+import messagesRoutes from './routes/messages.routes';
+
+dotenv.config();
+
+const app = express();
+const httpServer = createServer(app);
+const PORT = process.env.PORT || 3000;
+
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(cors());
+app.use(express.json());
+
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+});
+app.use('/api', limiter);
+
+app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/stories', storyRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/messages', messagesRoutes);
+
+initSocketServer(httpServer);
+startCleanupJob();
+
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+</file>
+
+<file path="backend/src/sockets/chatSocket.ts">
+import { Server } from 'socket.io';
+import { prisma } from '../db/prisma';
+import { AuthenticatedSocket } from '../types/socket.types';
+import {
+  getUserConversationIds,
+  findOrCreateDirectConversation,
+  isUserInConversation,
+} from '../services/conversation.service';
+import { saveMessage, saveFileMessage, getConversationMessages } from '../services/message.service';
+import { toggleReaction } from '../services/reaction.service';
+
+export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
+  const userId = socket.userId!;
+  const username = socket.username!;
+
+  async function handleConnect() {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isOnline: true, lastSeenAt: new Date() },
+    });
+
+    const conversationIds = await getUserConversationIds(userId);
+    conversationIds.forEach((id) => socket.join(id));
+    socket.broadcast.emit('user:online', { userId });
+  }
+
+  socket.on('conversation:start', async ({ targetUserId }, callback) => {
+    try {
+      const conversation = await findOrCreateDirectConversation(userId, targetUserId);
+      socket.join(conversation.id);
+
+      const targetSockets = await io.fetchSockets();
+      targetSockets.forEach((s) => {
+        if ((s as unknown as AuthenticatedSocket).userId === targetUserId) {
+          s.join(conversation.id);
+        }
+      });
+
+      callback({ success: true, conversation });
+    } catch {
+      callback({ success: false, error: 'Could not start conversation' });
+    }
+  });
+
+  socket.on('message:send', async ({ conversationId, content }, callback) => {
+    if (!content?.trim()) {
+      return callback?.({ success: false, error: 'Message cannot be empty' });
+    }
+
+    const allowed = await isUserInConversation(userId, conversationId);
+    if (!allowed) return callback?.({ success: false, error: 'Not a participant' });
+
+    try {
+      const message = await saveMessage(userId, { conversationId, content: content.trim() });
+      io.to(conversationId).emit('message:new', message);
+
+      // notificare push catre ceilalti participanti
+      const participants = await prisma.conversationParticipant.findMany({
+        where: { conversationId, NOT: { userId } },
+        include: { user: { select: { username: true } } },
+      });
+
+      participants.forEach((p) => {
+        io.to(p.userId).emit('notification:message', {
+          conversationId,
+          senderName: username,
+          content: content.trim().slice(0, 60),
+          type: 'TEXT',
+        });
+      });
+
+      callback?.({ success: true, message });
+    } catch {
+      callback?.({ success: false, error: 'Failed to send message' });
+    }
+  });
+
+  socket.on('message:sendFile', async ({ conversationId, fileUrl, fileName, fileSize, messageType }, callback) => {
+    const allowed = await isUserInConversation(userId, conversationId);
+    if (!allowed) return callback?.({ success: false, error: 'Not a participant' });
+
+    try {
+      const message = await saveFileMessage(userId, conversationId, fileUrl, fileName, fileSize, messageType);
+      io.to(conversationId).emit('message:new', message);
+
+      const typeLabels: Record<string, string> = {
+        IMAGE: '📷 Photo',
+        VIDEO: '🎥 Video',
+        AUDIO: '🎵 Audio',
+        FILE: '📎 File',
+      };
+
+      const participants = await prisma.conversationParticipant.findMany({
+        where: { conversationId, NOT: { userId } },
+      });
+
+      participants.forEach((p) => {
+        io.to(p.userId).emit('notification:message', {
+          conversationId,
+          senderName: username,
+          content: typeLabels[messageType] || '📎 File',
+          type: messageType,
+          fileName,
+        });
+      });
+
+      callback?.({ success: true, message });
+    } catch {
+      callback?.({ success: false, error: 'Failed to send file message' });
+    }
+  });
+
+  socket.on('message:read', async ({ conversationId }) => {
+    // marca toate mesajele din conversatie ca vazute de user
+    io.to(conversationId).emit('message:seen', { conversationId, userId });
+  });
+
+  socket.on('conversation:history', async ({ conversationId }, callback) => {
+    const allowed = await isUserInConversation(userId, conversationId);
+    if (!allowed) return callback?.({ success: false, error: 'Not a participant' });
+
+    const messages = await getConversationMessages(conversationId);
+    callback?.({ success: true, messages: messages.reverse() });
+
+    // anunta ca am vazut mesajele
+    socket.to(conversationId).emit('message:seen', { conversationId, userId });
+  });
+
+  socket.on('reaction:toggle', async ({ messageId, emoji }, callback) => {
+    if (!emoji || !messageId) return callback?.({ success: false, error: 'Missing params' });
+
+    try {
+      const message = await prisma.message.findUnique({
+        where: { id: messageId },
+        select: { conversationId: true, senderId: true },
+      });
+
+      if (!message) return callback?.({ success: false, error: 'Message not found' });
+
+      const allowed = await isUserInConversation(userId, message.conversationId);
+      if (!allowed) return callback?.({ success: false, error: 'Not a participant' });
+
+      const reactions = await toggleReaction(userId, messageId, emoji);
+      io.to(message.conversationId).emit('reaction:updated', { messageId, reactions });
+
+      // notificare catre autorul mesajului
+      if (message.senderId !== userId) {
+        const reactionValues = Object.values(reactions);
+        const userReacted = reactionValues.some((users: any) =>
+          users.some((u: any) => u.userId === userId)
+        );
+
+        if (userReacted) {
+          io.to(message.senderId).emit('notification:reaction', {
+            senderName: username,
+            emoji,
+            type: 'message',
+          });
+        }
+      }
+
+      callback?.({ success: true, reactions });
+    } catch {
+      callback?.({ success: false, error: 'Failed to toggle reaction' });
+    }
+  });
+
+  socket.on('story:react', async ({ storyId, emoji }, callback) => {
+    try {
+      const story = await prisma.story.findUnique({
+        where: { id: storyId },
+        select: { userId: true, user: { select: { username: true } } },
+      });
+
+      if (!story) return callback?.({ success: false, error: 'Story not found' });
+
+      if (story.userId !== userId) {
+        io.to(story.userId).emit('notification:reaction', {
+          senderName: username,
+          emoji,
+          type: 'story',
+        });
+      }
+
+      callback?.({ success: true });
+    } catch {
+      callback?.({ success: false, error: 'Failed to react to story' });
+    }
+  });
+
+  socket.on('typing:start', ({ conversationId }) => {
+    socket.to(conversationId).emit('typing:start', { userId, username });
+  });
+
+  socket.on('typing:stop', ({ conversationId }) => {
+    socket.to(conversationId).emit('typing:stop', { userId });
+  });
+
+  socket.on('disconnect', async () => {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isOnline: false, lastSeenAt: new Date() },
+    });
+    socket.broadcast.emit('user:offline', { userId });
+  });
+
+  handleConnect();
+}
+</file>
+
+</files>

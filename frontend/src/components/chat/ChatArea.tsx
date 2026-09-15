@@ -40,149 +40,74 @@ export default function ChatArea() {
   const otherUser = getOtherUser(activeConversation);
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        overflow: 'hidden',
-        background: '#060b14',
-        position: 'relative',
-      }}
-    >
-      {/* ambient glow */}
-      <div style={{
-        position: 'absolute', top: 0, right: 0,
-        width: 400, height: 400, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,200,255,0.06) 0%, transparent 70%)',
-        pointerEvents: 'none', zIndex: 0,
-      }} />
-
-      {/* stories bar — fixed height, no horizontal scroll */}
-      <div style={{ flexShrink: 0, zIndex: 1, position: 'relative' }}>
+    <div className="flex-1 flex flex-col h-screen overflow-hidden bg-ios-bg relative">
+      <div className="shrink-0 z-10 relative">
         <StoriesBar />
       </div>
 
       {activeConversation ? (
         <>
-          {/* chat header */}
-          <div style={{
-            flexShrink: 0,
-            padding: '12px 20px',
-            borderBottom: '1px solid rgba(0,200,255,0.08)',
-            background: 'rgba(255,255,255,0.02)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            zIndex: 1,
-          }}>
+          {/* Header blur */}
+          <div className="shrink-0 px-5 py-3 border-b border-ios-border bg-ios-bg/70 backdrop-blur-2xl flex items-center gap-3 z-10">
             {otherUser ? (
-              <div style={{ position: 'relative', flexShrink: 0 }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
-                  overflow: 'hidden',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 14, fontWeight: 600, color: 'white',
-                }}>
+              <div className="relative shrink-0">
+                <div className="w-10 h-10 rounded-full bg-ios-hover flex items-center justify-center text-[15px] font-semibold text-white overflow-hidden">
                   {otherUser.avatarUrl ? (
-                    <img
-                      src={getAvatarUrl(otherUser.avatarUrl) || ''}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      alt=""
-                    />
+                    <img src={getAvatarUrl(otherUser.avatarUrl) || ''} className="w-full h-full object-cover" alt="" />
                   ) : (
                     otherUser.username[0].toUpperCase()
                   )}
                 </div>
-                {otherUser.isOnline && (
-                  <span style={{
-                    position: 'absolute', bottom: 1, right: 1,
-                    width: 10, height: 10, borderRadius: '50%',
-                    background: '#22d46a',
-                    border: '2px solid #060b14',
-                  }} />
-                )}
               </div>
             ) : (
-              <div style={{
-                width: 40, height: 40, borderRadius: '50%',
-                background: 'rgba(0,200,255,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 18,
-              }}>
-                👥
-              </div>
+              <div className="w-10 h-10 rounded-full bg-ios-hover flex items-center justify-center text-[18px]">👥</div>
             )}
             <div>
-              <p style={{ color: 'white', fontWeight: 600, fontSize: 14, margin: 0 }}>
+              <p className="text-[15px] font-semibold text-white leading-tight">
                 {activeConversation.name || otherUser?.username || 'Unknown'}
               </p>
               {otherUser?.isOnline ? (
-                <p style={{ color: '#22d46a', fontSize: 11, margin: 0 }}>● Online</p>
+                <p className="text-[12px] text-ios-text-sec mt-0.5">Active Now</p>
               ) : otherUser?.lastSeenAt ? (
-                <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, margin: 0 }}>
+                <p className="text-[12px] text-ios-text-sec mt-0.5">
                   Last seen {new Date(otherUser.lastSeenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               ) : null}
             </div>
           </div>
 
-          {/* messages area */}
-          <div style={{
-            flex: 1,
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            padding: '16px 20px',
-            zIndex: 1,
-            position: 'relative',
-            backgroundImage: wallpaper ? `url(${wallpaper})` : undefined,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'local',
-          }}>
-            {wallpaper && (
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: 'rgba(6,11,20,0.75)',
-                pointerEvents: 'none',
-              }} />
-            )}
-            <div style={{ position: 'relative', zIndex: 1 }}>
+          <div 
+            className="flex-1 overflow-y-auto px-5 py-4 z-0 relative"
+            style={wallpaper ? { backgroundImage: `url(${wallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+          >
+            {wallpaper && <div className="absolute inset-0 bg-black/50 pointer-events-none" />}
+            
+            <div className="relative z-10">
               {messages.length === 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 12 }}>
-                  <span style={{ fontSize: 40 }}>💬</span>
-                  <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No messages yet. Say hi!</p>
+                <div className="flex flex-col items-center justify-center h-[50vh] gap-3">
+                  <p className="text-[13px] text-ios-text-sec">Say hi!</p>
                 </div>
               )}
-              {messages.map((msg) => (
-                <MessageBubble key={msg.id} message={msg} />
+              {messages.map((msg, idx) => (
+                <MessageBubble 
+                  key={msg.id} 
+                  message={msg} 
+                  isLast={idx === messages.length - 1} 
+                  otherUserId={otherUser?.id}
+                />
               ))}
               <div ref={bottomRef} />
             </div>
           </div>
 
-          {/* typing + input */}
-          <div style={{ flexShrink: 0, zIndex: 1 }}>
+          <div className="shrink-0 z-10 bg-ios-bg border-t border-ios-border">
             <TypingIndicator conversationId={activeConversation.id} />
             <MessageInput />
           </div>
         </>
       ) : (
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 16,
-          zIndex: 1,
-          position: 'relative',
-        }}>
-          <div style={{ fontSize: 48, color: 'rgba(0,200,255,0.2)', fontWeight: 700 }}>✦</div>
-          <p style={{ color: 'rgba(0,200,255,0.5)', fontSize: 18, fontWeight: 600 }}>NexusChat</p>
-          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 14 }}>Search for a user to start chatting</p>
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 z-10">
+          <p className="text-[18px] text-ios-text-sec font-medium">Select a chat to start messaging</p>
         </div>
       )}
     </div>

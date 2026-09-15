@@ -23,6 +23,8 @@ model User {
   reactions     Reaction[]
   stories       Story[]
   storyViews    StoryView[]
+  
+  twoFactorCodes TwoFactorCode[]
 
   @@map("users")
 }
@@ -125,4 +127,26 @@ model StoryView {
 
   @@unique([storyId, userId])
   @@map("story_views")
+}
+
+model TwoFactorCode {
+  id        String   @id @default(uuid())
+  userId    String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factor_codes")
+}
+
+model MessageSeen {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  seenAt    DateTime @default(now()) @map("seen_at")
+
+  @@unique([messageId, userId])
+  @@map("message_seen")
 }

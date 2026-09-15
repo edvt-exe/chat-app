@@ -23,10 +23,10 @@ function checkPassword(pwd: string): PasswordStrength {
 function StrengthRow({ ok, label }: { ok: boolean; label: string }) {
   return (
     <div className="flex items-center gap-2">
-      <span style={{ color: ok ? '#22d46a' : 'rgba(255,255,255,0.25)', fontSize: 12 }}>
+      <span className={`text-[12px] ${ok ? 'text-ios-green' : 'text-ios-text-sec'}`}>
         {ok ? '✓' : '○'}
       </span>
-      <span style={{ fontSize: 11, color: ok ? 'rgba(34,212,106,0.8)' : 'rgba(255,255,255,0.3)' }}>
+      <span className={`text-[11px] ${ok ? 'text-ios-green' : 'text-ios-text-sec'}`}>
         {label}
       </span>
     </div>
@@ -43,174 +43,139 @@ export default function AuthPage() {
   const [form, setForm] = useState({ username: '', email: '', password: '', identifier: '' });
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [showStrength, setShowStrength] = useState(false);
 
   const strength = checkPassword(form.password);
   const passwordValid = Object.values(strength).every(Boolean);
 
-  const inputStyle = {
-    background: 'rgba(0,0,0,0.3)',
-    border: '1px solid rgba(0,200,255,0.15)',
-  };
-
-  const inputClass = "w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-colors";
-
-  const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontSize: 11,
-    fontWeight: 500,
-    marginBottom: 6,
-    color: 'rgba(0,200,255,0.6)',
-  };
+  const inputClass = "w-full rounded-xl px-4 py-3 text-[17px] bg-ios-input text-white placeholder-ios-text-sec outline-none transition-colors";
+  const labelClass = "block text-[13px] font-medium mb-1.5 text-ios-text-muted";
 
   async function handleCredentials(e: React.FormEvent) {
-  e.preventDefault();
-  setError('');
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
 
-  if (mode === 'register') {
-    if (!passwordValid) { setError('Password does not meet all requirements'); return; }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) { setError('Please enter a valid email address'); return; }
-  }
-
-  setLoading(true);
-  try {
     if (mode === 'register') {
-      const { data } = await api.post('/api/auth/register', {
-        username: form.username,
-        email: form.email,
-        password: form.password,
-      });
-      login(data.user, data.token);
-    } else {
-      const { data } = await api.post('/api/auth/login', {
-        identifier: form.identifier,
-        password: form.password,
-      });
-
-      if (data.userId) {
-        setPendingUserId(data.userId);
-        setStep('verify');
-      } else if (data.token) {
-        login(data.user, data.token);
-      }
+      if (!passwordValid) { setError('Password does not meet all requirements'); return; }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email)) { setError('Please enter a valid email address'); return; }
     }
-  } catch (err: any) {
-    setError(err.response?.data?.error || 'Something went wrong');
-  } finally {
-    setLoading(false);
+
+    setLoading(true);
+    try {
+      if (mode === 'register') {
+        const { data } = await api.post('/api/auth/register', {
+          username: form.username,
+          email: form.email,
+          password: form.password,
+        });
+        setSuccessMsg('Cont creat cu succes! Se Redirecționează...');
+        setTimeout(() => {
+          login(data.user, data.token);
+        }, 1200);
+      } else {
+        const { data } = await api.post('/api/auth/login', {
+          identifier: form.identifier,
+          password: form.password,
+        });
+
+        if (data.userId) {
+          setPendingUserId(data.userId);
+          setStep('verify');
+        } else if (data.token) {
+          setSuccessMsg('Autentificare reușită! Se Redirecționează...');
+          setTimeout(() => {
+            login(data.user, data.token);
+          }, 1200);
+        }
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Something went wrong');
+      setLoading(false);
+    }
   }
-}
 
   async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    setSuccessMsg('');
     setLoading(true);
     try {
       const { data } = await api.post('/api/auth/verify-code', {
         userId: pendingUserId,
         code: code.trim(),
       });
-      login(data.user, data.token);
+      setSuccessMsg('Autentificare reușită! Se Redirecționează...');
+      setTimeout(() => {
+        login(data.user, data.token);
+      }, 1200);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Invalid code');
-    } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
-      style={{ background: '#060b14' }}
-    >
-      <div className="absolute top-[-100px] left-[10%] w-[400px] h-[400px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(0,200,255,0.12) 0%, transparent 70%)' }} />
-      <div className="absolute bottom-[-80px] right-[15%] w-[300px] h-[300px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(0,100,255,0.10) 0%, transparent 70%)' }} />
-
-      <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-            Nexus<span style={{ color: '#00c8ff' }}>Chat</span>
-          </h1>
-          <p className="text-sm" style={{ color: 'rgba(0,200,255,0.5)' }}>
-            Real-time messaging, reimagined
-          </p>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-ios-bg">
+      <div className="w-full max-w-[360px]">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-white tracking-tight mb-2">NexusChat</h1>
+          <p className="text-[15px] text-ios-text-sec">Sign in to continue</p>
         </div>
 
-        <div className="rounded-2xl p-8"
-          style={{ background: 'rgba(255,255,255,0.04)', backdropFilter: 'blur(20px)', border: '1px solid rgba(0,200,255,0.12)' }}>
-
+        <div className="bg-ios-card rounded-[24px] p-6 shadow-2xl border border-ios-border">
           {step === 'verify' ? (
             <form onSubmit={handleVerifyCode} className="space-y-4">
               <div className="text-center mb-6">
-                <div className="text-4xl mb-3">📧</div>
-                <p className="text-white font-semibold">Check your email</p>
-                <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  We sent a 6-digit code to your email address
-                </p>
+                <p className="text-[17px] text-white font-semibold tracking-tight">Check your email</p>
+                <p className="text-[13px] mt-1 text-ios-text-sec">We sent a 6-digit code</p>
               </div>
 
               <div>
-                <label style={labelStyle}>Verification Code</label>
                 <input
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="000000"
-                  className={inputClass}
-                  style={{
-                    ...inputStyle,
-                    textAlign: 'center',
-                    fontSize: 24,
-                    letterSpacing: 8,
-                    fontWeight: 700,
-                  }}
+                  className={`${inputClass} text-center text-2xl tracking-[0.5em] font-bold`}
                   maxLength={6}
                   required
                   autoFocus
                 />
               </div>
 
-              {error && (
-                <p className="text-xs rounded-lg px-3 py-2"
-                  style={{ color: '#f87171', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                  {error}
-                </p>
-              )}
+              {error && <p className="text-[13px] text-ios-red text-center">{error}</p>}
+              {successMsg && <p className="text-[13px] text-ios-green font-medium text-center">{successMsg}</p>}
 
               <button
                 type="submit"
                 disabled={loading || code.length !== 6}
-                className="w-full text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg, #0096ff, #00c8ff)' }}
+                className="w-full bg-ios-blue text-white text-[17px] font-semibold py-3.5 rounded-xl transition-colors disabled:opacity-50 mt-2"
               >
-                {loading ? 'Verifying...' : 'Verify Code'}
+                {loading ? 'Verifying...' : 'Verify'}
               </button>
-
               <button
                 type="button"
-                onClick={() => { setStep('credentials'); setCode(''); setError(''); }}
-                className="w-full text-sm py-2"
-                style={{ color: 'rgba(255,255,255,0.3)' }}
+                onClick={() => { setStep('credentials'); setCode(''); setError(''); setSuccessMsg(''); }}
+                className="w-full text-[15px] text-ios-blue mt-4"
               >
-                ← Back to login
+                Back to login
               </button>
             </form>
           ) : (
             <>
-              <div className="flex mb-6 p-1 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)' }}>
+              {/* iOS Segmented Control */}
+              <div className="flex bg-ios-input p-[3px] rounded-[9px] w-full mb-6">
                 {(['login', 'register'] as const).map((m) => (
                   <button
                     key={m}
-                    onClick={() => { setMode(m); setError(''); setShowStrength(false); }}
-                    className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all"
-                    style={{
-                      background: mode === m ? 'linear-gradient(135deg, #0096ff, #00c8ff)' : 'transparent',
-                      color: mode === m ? 'white' : 'rgba(255,255,255,0.4)',
-                    }}
+                    onClick={() => { setMode(m); setError(''); setSuccessMsg(''); setShowStrength(false); }}
+                    className={`flex-1 py-1.5 px-1 text-[13px] font-medium rounded-md transition-all duration-200 ${
+                      mode === m ? 'bg-[#636366] text-white shadow-sm' : 'text-ios-text-muted hover:text-white'
+                    }`}
                   >
                     {m === 'login' ? 'Sign In' : 'Create Account'}
                   </button>
@@ -221,27 +186,25 @@ export default function AuthPage() {
                 {mode === 'register' && (
                   <>
                     <div>
-                      <label style={labelStyle}>Username</label>
+                      <label className={labelClass}>Username</label>
                       <input
                         type="text"
                         value={form.username}
                         onChange={(e) => setForm({ ...form, username: e.target.value })}
                         placeholder="yourname"
                         className={inputClass}
-                        style={inputStyle}
                         required
                         minLength={3}
                       />
                     </div>
                     <div>
-                      <label style={labelStyle}>Email</label>
+                      <label className={labelClass}>Email</label>
                       <input
                         type="email"
                         value={form.email}
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
                         placeholder="you@example.com"
                         className={inputClass}
-                        style={inputStyle}
                         required
                       />
                     </div>
@@ -250,21 +213,20 @@ export default function AuthPage() {
 
                 {mode === 'login' && (
                   <div>
-                    <label style={labelStyle}>Username or Email</label>
+                    <label className={labelClass}>Username or Email</label>
                     <input
                       type="text"
                       value={form.identifier}
                       onChange={(e) => setForm({ ...form, identifier: e.target.value })}
-                      placeholder="yourname or you@example.com"
+                      placeholder="Username or Email"
                       className={inputClass}
-                      style={inputStyle}
                       required
                     />
                   </div>
                 )}
 
                 <div>
-                  <label style={labelStyle}>Password</label>
+                  <label className={labelClass}>Password</label>
                   <input
                     type="password"
                     value={form.password}
@@ -272,12 +234,10 @@ export default function AuthPage() {
                     onFocus={() => mode === 'register' && setShowStrength(true)}
                     placeholder="••••••••"
                     className={inputClass}
-                    style={inputStyle}
                     required
                   />
                   {mode === 'register' && showStrength && (
-                    <div className="mt-2 p-3 rounded-xl space-y-1"
-                      style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0,200,255,0.1)' }}>
+                    <div className="mt-3 p-3 rounded-xl bg-ios-bg space-y-1.5 border border-ios-border">
                       <StrengthRow ok={strength.hasLength} label="At least 8 characters" />
                       <StrengthRow ok={strength.hasUpper} label="One uppercase letter (A-Z)" />
                       <StrengthRow ok={strength.hasLower} label="One lowercase letter (a-z)" />
@@ -287,24 +247,15 @@ export default function AuthPage() {
                   )}
                 </div>
 
-                {error && (
-                  <p className="text-xs rounded-lg px-3 py-2"
-                    style={{ color: '#f87171', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                    {error}
-                  </p>
-                )}
+                {error && <p className="text-[13px] text-ios-red text-center pt-2">{error}</p>}
+                {successMsg && <p className="text-[13px] text-ios-green font-medium text-center pt-2">{successMsg}</p>}
 
                 <button
                   type="submit"
                   disabled={loading || (mode === 'register' && !passwordValid)}
-                  className="w-full text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50"
-                  style={{ background: 'linear-gradient(135deg, #0096ff, #00c8ff)' }}
+                  className="w-full mt-2 bg-ios-blue text-white text-[17px] font-semibold py-3.5 rounded-xl transition-colors disabled:opacity-50"
                 >
-                  {loading
-                    ? 'Loading...'
-                    : mode === 'login'
-                    ? 'Sign In'
-                    : 'Create Account'}
+                  {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}
                 </button>
               </form>
             </>

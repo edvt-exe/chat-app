@@ -5,6 +5,7 @@ import UserSearch from './UserSearch';
 import SettingsPanel from '../settings/SettingsPanel';
 import NotificationBell from '../ui/NotificationBell';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const API = 'http://localhost:3000';
 
@@ -39,25 +40,16 @@ export default function Sidebar() {
 
   return (
     <>
-      <div style={{
-        width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', height: '100vh',
-        background: 'rgba(255,255,255,0.04)',
-        backdropFilter: 'blur(20px)',
-        borderRight: '1px solid rgba(0,200,255,0.12)',
-      }}>
-        {/* header */}
-        <div style={{ padding: '16px 14px', borderBottom: '1px solid rgba(0,200,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-          <span style={{ fontSize: 18, fontWeight: 700, color: 'white', letterSpacing: -0.5 }}>
-            Nexus<span style={{ color: '#00c8ff' }}>Chat</span>
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div className="w-[280px] shrink-0 flex flex-col h-screen bg-ios-bg border-r border-ios-border">
+        {/* Header */}
+        <div className="px-4 py-4 border-b border-ios-border flex items-center justify-between shrink-0">
+          <span className="text-[20px] font-bold text-white tracking-tight">Chats</span>
+          <div className="flex items-center gap-2">
             <NotificationBell />
-            <button onClick={() => setShowSettings(true)}
-              style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,200,255,0.08)', border: '1px solid rgba(0,200,255,0.15)', color: 'rgba(0,200,255,0.6)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <button onClick={() => setShowSettings(true)} className="w-8 h-8 rounded-full bg-ios-input text-ios-text-sec hover:text-white flex items-center justify-center transition-colors">
               ⚙
             </button>
-            <button onClick={() => setShowLogoutConfirm(true)}
-              style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,50,50,0.08)', border: '1px solid rgba(255,50,50,0.15)', color: 'rgba(255,80,80,0.7)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <button onClick={() => setShowLogoutConfirm(true)} className="w-8 h-8 rounded-full bg-ios-input text-ios-text-sec hover:text-ios-red flex items-center justify-center transition-colors">
               ⏻
             </button>
           </div>
@@ -65,12 +57,11 @@ export default function Sidebar() {
 
         <UserSearch />
 
-        {/* conversations list */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '4px 8px' }}>
+        {/* Conversations List */}
+        <div className="flex-1 overflow-y-auto px-2 py-2">
           {conversations.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-              <p style={{ fontSize: 28, margin: '0 0 8px' }}>💬</p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Search for a user to start chatting</p>
+            <div className="text-center py-10 px-4">
+              <p className="text-[13px] text-ios-text-sec">No conversations yet</p>
             </div>
           ) : conversations.map((conv) => {
             const other = getOtherParticipant(conv);
@@ -81,51 +72,38 @@ export default function Sidebar() {
               <button
                 key={conv.id}
                 onClick={() => setActiveConversation(conv)}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '10px 10px', borderRadius: 10, marginBottom: 2,
-                  background: isActive ? 'rgba(0,200,255,0.08)' : 'transparent',
-                  border: isActive ? '1px solid rgba(0,200,255,0.2)' : '1px solid transparent',
-                  cursor: 'pointer', textAlign: 'left',
-                }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-colors ${
+                  isActive ? 'bg-ios-blue text-white' : 'hover:bg-ios-input'
+                }`}
               >
-                {/* avatar */}
-                <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 15, fontWeight: 600, color: 'white', overflow: 'hidden',
-                  }}>
+                {/* Avatar */}
+                <div className="relative shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-ios-hover flex items-center justify-center text-[16px] font-semibold text-white overflow-hidden">
                     {other?.avatarUrl ? (
-                      <img src={getAvatarUrl(other.avatarUrl) || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                      <img src={getAvatarUrl(other.avatarUrl) || ''} className="w-full h-full object-cover" alt="" />
                     ) : (
                       (other?.username || '?')[0].toUpperCase()
                     )}
                   </div>
                   {other?.isOnline && (
-                    <span style={{ position: 'absolute', bottom: 1, right: 1, width: 10, height: 10, borderRadius: '50%', background: '#22d46a', border: '2px solid #060b14' }} />
+                    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-ios-green border-[2.5px] border-ios-bg" />
                   )}
                 </div>
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: 'white', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div className="flex-1 min-w-0 text-left">
+                  <div className="flex justify-between items-center mb-0.5">
+                    <p className={`text-[15px] font-semibold truncate ${isActive ? 'text-white' : 'text-white'}`}>
                       {getConversationName(conv)}
                     </p>
                     {unread > 0 && (
-                      <span style={{
-                        minWidth: 18, height: 18, borderRadius: 100,
-                        background: '#00c8ff', color: '#060b14',
-                        fontSize: 10, fontWeight: 700,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        padding: '0 4px', flexShrink: 0, marginLeft: 4,
-                      }}>
+                      <span className={`px-1.5 min-w-[18px] h-[18px] rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ml-2 ${
+                        isActive ? 'bg-white text-ios-blue' : 'bg-ios-blue text-white'
+                      }`}>
                         {unread > 99 ? '99+' : unread}
                       </span>
                     )}
                   </div>
-                  <p style={{ fontSize: 11, color: unread > 0 ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: unread > 0 ? 500 : 400 }}>
+                  <p className={`text-[13px] truncate ${isActive ? 'text-white/80' : (unread > 0 ? 'text-white font-medium' : 'text-ios-text-sec')}`}>
                     {getLastMessage(conv)}
                   </p>
                 </div>
@@ -134,52 +112,40 @@ export default function Sidebar() {
           })}
         </div>
 
-        {/* user footer */}
-        <div style={{ padding: '12px 14px', borderTop: '1px solid rgba(0,200,255,0.08)', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 600, color: 'white', overflow: 'hidden',
-            }}>
+        {/* User Footer */}
+        <div className="px-4 py-3 border-t border-ios-border flex items-center gap-3 shrink-0 bg-ios-card/50">
+          <div className="relative shrink-0">
+            <div className="w-9 h-9 rounded-full bg-ios-hover flex items-center justify-center text-[13px] font-semibold text-white overflow-hidden">
               {user?.avatarUrl ? (
-                <img src={getAvatarUrl(user.avatarUrl) || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                <img src={getAvatarUrl(user.avatarUrl) || ''} className="w-full h-full object-cover" alt="" />
               ) : (
                 (user?.username || 'U')[0].toUpperCase()
               )}
             </div>
-            <span style={{ position: 'absolute', bottom: 0, right: 0, width: 8, height: 8, borderRadius: '50%', background: '#22d46a', border: '2px solid #060b14' }} />
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 12, fontWeight: 600, color: 'white', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.username}</p>
-            <p style={{ fontSize: 10, color: '#22d46a', margin: 0 }}>Online</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-[14px] font-semibold text-white truncate">{user?.username}</p>
+            <p className="text-[11px] text-ios-text-sec truncate">{user?.email}</p>
           </div>
         </div>
       </div>
 
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
 
-      {showLogoutConfirm && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ width: '100%', maxWidth: 300, borderRadius: 20, padding: 24, textAlign: 'center', background: '#0a1020', border: '1px solid rgba(0,200,255,0.15)' }}>
-            <p style={{ fontSize: 18, fontWeight: 600, color: 'white', margin: '0 0 8px' }}>Sign out?</p>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 24px' }}>
-              You'll need to sign in again to access your messages.
-            </p>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setShowLogoutConfirm(false)}
-                style={{ flex: 1, padding: '10px 0', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                Cancel
-              </button>
-              <button onClick={() => { logout(); setShowLogoutConfirm(false); }}
-                style={{ flex: 1, padding: '10px 0', borderRadius: 10, background: 'rgba(239,68,68,0.8)', border: 'none', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                Sign out
-              </button>
-            </div>
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md px-4">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-[320px] bg-ios-card rounded-[24px] p-6 text-center shadow-2xl border border-ios-border">
+              <h2 className="text-[20px] font-semibold text-white tracking-tight">Sign Out</h2>
+              <p className="mt-2 text-[15px] text-ios-text-muted leading-snug">Are you sure you want to sign out?</p>
+              <div className="mt-6 flex flex-col gap-2">
+                <button onClick={() => { logout(); setShowLogoutConfirm(false); }} className="w-full py-3.5 bg-ios-red text-white text-[17px] font-semibold rounded-xl hover:opacity-90 transition-opacity">Sign Out</button>
+                <button onClick={() => setShowLogoutConfirm(false)} className="w-full py-3.5 bg-ios-input text-white text-[17px] font-semibold rounded-xl hover:bg-ios-hover transition-colors">Cancel</button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </>
   );
 }

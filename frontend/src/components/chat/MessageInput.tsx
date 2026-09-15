@@ -13,19 +13,15 @@ export default function MessageInput() {
     if (!text.trim() || !activeConversation) return;
     sendMessage(text.trim());
     setText('');
-
     const socket = getSocket();
     if (socket) socket.emit('typing:stop', { conversationId: activeConversation.id });
   }
 
   function handleTyping(e: React.ChangeEvent<HTMLInputElement>) {
     setText(e.target.value);
-
     const socket = getSocket();
     if (!activeConversation || !socket) return;
-
     socket.emit('typing:start', { conversationId: activeConversation.id });
-
     if (typingRef.current) clearTimeout(typingRef.current);
     typingRef.current = setTimeout(() => {
       socket.emit('typing:stop', { conversationId: activeConversation.id });
@@ -40,54 +36,23 @@ export default function MessageInput() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex items-center gap-3 px-4 py-3"
-      style={{
-        borderTop: '1px solid rgba(0,200,255,0.08)',
-        background: 'rgba(255,255,255,0.02)',
-      }}
-    >
+    <form onSubmit={handleSubmit} className="flex items-center gap-2 px-4 py-3 bg-ios-bg">
       <input ref={fileRef} type="file" className="hidden" onChange={handleFileChange} />
-
-      <button
-        type="button"
-        onClick={() => fileRef.current?.click()}
-        className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 transition-colors"
-        style={{
-          background: 'rgba(0,200,255,0.06)',
-          border: '1px solid rgba(0,200,255,0.15)',
-          color: 'rgba(0,200,255,0.6)',
-        }}
-      >
-        📎
+      
+      <button type="button" onClick={() => fileRef.current?.click()} className="w-8 h-8 rounded-full bg-ios-input text-ios-text-sec flex items-center justify-center shrink-0">
+        +
       </button>
 
       <input
         value={text}
         onChange={handleTyping}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSubmit(e as any);
-          }
-        }}
-        placeholder={activeConversation ? 'Type a message...' : 'Select a conversation'}
+        placeholder={activeConversation ? 'iMessage' : ''}
         disabled={!activeConversation}
-        className="flex-1 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none transition-colors disabled:opacity-40"
-        style={{
-          background: 'rgba(0,0,0,0.3)',
-          border: '1px solid rgba(0,200,255,0.15)',
-        }}
+        className="flex-1 rounded-full bg-ios-input px-4 py-1.5 text-[15px] text-white placeholder-ios-text-sec outline-none disabled:opacity-50 border border-ios-border/50"
       />
 
-      <button
-        type="submit"
-        disabled={!text.trim() || !activeConversation}
-        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40 hover:opacity-90"
-        style={{ background: 'linear-gradient(135deg, #0096ff, #00c8ff)' }}
-      >
-        <span className="text-white text-base">➤</span>
+      <button type="submit" disabled={!text.trim() || !activeConversation} className="w-8 h-8 rounded-full bg-ios-blue text-white flex items-center justify-center shrink-0 disabled:opacity-50">
+        ↑
       </button>
     </form>
   );

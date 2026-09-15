@@ -37,11 +37,8 @@ function StoryViewerContent({ stories, initialIndex = 0, onClose }: Props) {
       setProgress((p) => {
         if (p >= 100) {
           clearInterval(interval);
-          if (current < stories.length - 1) {
-            setCurrent((c) => c + 1);
-          } else {
-            onClose();
-          }
+          if (current < stories.length - 1) setCurrent((c) => c + 1);
+          else onClose();
           return 100;
         }
         return p + 2;
@@ -80,153 +77,86 @@ function StoryViewerContent({ stories, initialIndex = 0, onClose }: Props) {
   if (!story) return null;
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 99999,
-        background: 'rgba(0,0,0,0.97)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        backdropFilter: 'blur(8px)',
-      }}
-    >
-      {/* prev/next buttons esterni */}
+    <div className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-md flex items-center justify-center" onClick={onClose}>
+      
       {current > 0 && (
-        <button
-          onClick={(e) => { e.stopPropagation(); goPrev(); }}
-          style={{
-            position: 'absolute', left: 16,
-            width: 44, height: 44, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.1)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'white', fontSize: 20, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 10,
-          }}
-        >
+        <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 w-11 h-11 rounded-full bg-ios-input/50 text-white flex items-center justify-center z-10 hover:bg-ios-hover">
           ‹
         </button>
       )}
       {current < stories.length - 1 && (
-        <button
-          onClick={(e) => { e.stopPropagation(); goNext(); }}
-          style={{
-            position: 'absolute', right: 16,
-            width: 44, height: 44, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.1)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'white', fontSize: 20, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 10,
-          }}
-        >
+        <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-4 w-11 h-11 rounded-full bg-ios-input/50 text-white flex items-center justify-center z-10 hover:bg-ios-hover">
           ›
         </button>
       )}
 
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: 'relative',
-          width: '100%', maxWidth: 400, maxHeight: '92vh',
-          borderRadius: 20, overflow: 'hidden',
-          background: '#000',
-          boxShadow: '0 0 80px rgba(0,200,255,0.15)',
-        }}
-      >
-        {/* progress */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10, display: 'flex', gap: 4, padding: 12 }}>
+      <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-[400px] max-h-[92vh] aspect-[9/16] rounded-[24px] overflow-hidden bg-black shadow-2xl">
+        
+        {/* Progress Bars */}
+        <div className="absolute top-0 left-0 right-0 z-10 flex gap-1 p-3">
           {stories.map((_, i) => (
-            <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.25)', overflow: 'hidden' }}>
-              <div style={{
-                height: '100%', borderRadius: 2, background: '#00c8ff',
-                width: i < current ? '100%' : i === current ? `${progress}%` : '0%',
-              }} />
+            <div key={i} className="flex-1 h-1 rounded-full bg-white/20 overflow-hidden">
+              <div className="h-full bg-white" style={{ width: i < current ? '100%' : i === current ? `${progress}%` : '0%' }} />
             </div>
           ))}
         </div>
 
-        {/* header */}
-        <div style={{ position: 'absolute', top: 24, left: 0, right: 0, zIndex: 10, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px' }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #0066ff, #00c8ff)',
-            flexShrink: 0, overflow: 'hidden',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14, fontWeight: 600, color: 'white',
-          }}>
+        {/* Header */}
+        <div className="absolute top-6 left-0 right-0 z-10 flex items-center gap-3 px-4 py-2">
+          <div className="w-9 h-9 rounded-full bg-ios-hover flex items-center justify-center text-[13px] font-semibold text-white overflow-hidden">
             {story.user.avatarUrl ? (
-              <img src={story.user.avatarUrl.startsWith('http') ? story.user.avatarUrl : `${API}${story.user.avatarUrl}`}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+              <img src={story.user.avatarUrl.startsWith('http') ? story.user.avatarUrl : `${API}${story.user.avatarUrl}`} className="w-full h-full object-cover" alt="" />
             ) : story.user.username[0].toUpperCase()}
           </div>
-          <div style={{ flex: 1 }}>
-            <p style={{ color: 'white', fontWeight: 600, fontSize: 14, margin: 0 }}>{story.user.username}</p>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, margin: 0 }}>
+          <div className="flex-1">
+            <p className="text-white font-semibold text-[14px] leading-tight">{story.user.username}</p>
+            <p className="text-white/60 text-[11px]">
               {new Date(story.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              {' · '}{story.views.length} views
             </p>
           </div>
-          <button
-            onClick={onClose}
-            style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', color: 'white', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            ✕
-          </button>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center">✕</button>
         </div>
 
-        {/* media */}
-        <div style={{ width: '100%', aspectRatio: '9/16', maxHeight: '92vh' }}>
+        {/* Media */}
+        <div className="w-full h-full bg-black flex items-center justify-center">
           {story.mediaType === 'IMAGE' ? (
-            <img src={`${API}${story.mediaUrl}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+            <img src={`${API}${story.mediaUrl}`} className="w-full h-full object-cover" alt="" />
           ) : (
-            <video src={`${API}${story.mediaUrl}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} autoPlay muted playsInline />
+            <video src={`${API}${story.mediaUrl}`} className="w-full h-full object-cover" autoPlay muted playsInline />
           )}
         </div>
 
+        {/* Caption */}
         {story.caption && (
-          <div style={{ position: 'absolute', bottom: 60, left: 0, right: 0, padding: '32px 16px 12px', background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }}>
-            <p style={{ color: 'white', fontSize: 14, margin: 0 }}>{story.caption}</p>
+          <div className="absolute bottom-16 left-0 right-0 px-4 pt-8 pb-4 bg-gradient-to-t from-black/80 to-transparent">
+            <p className="text-white text-[15px]">{story.caption}</p>
           </div>
         )}
 
-        {/* reaction bar */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }}>
+        {/* Reaction Bar */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-center gap-2 bg-gradient-to-t from-black to-transparent">
           {sentReaction ? (
-            <div style={{ fontSize: 32, animation: 'none' }}>{sentReaction}</div>
+            <div className="text-[32px]">{sentReaction}</div>
           ) : showReactions ? (
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="flex gap-2">
               {STORY_EMOJIS.map((emoji) => (
                 <button
-                  key={emoji}
-                  onClick={() => handleReact(emoji)}
-                  style={{ fontSize: 24, background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.3)'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
+                  key={emoji} onClick={() => handleReact(emoji)}
+                  className="w-10 h-10 rounded-full bg-white/10 text-[24px] flex items-center justify-center hover:scale-110 transition-transform"
                 >
                   {emoji}
                 </button>
               ))}
             </div>
           ) : (
-            <button
-              onClick={() => setShowReactions(true)}
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: 20, padding: '6px 16px',
-                color: 'white', fontSize: 13, cursor: 'pointer',
-              }}
-            >
-              React ❤️
+            <button onClick={() => setShowReactions(true)} className="px-5 py-2 rounded-full bg-white/10 border border-white/20 text-white text-[14px] font-medium hover:bg-white/20 transition-colors">
+              React
             </button>
           )}
         </div>
 
-        {/* nav zones */}
-        <button style={{ position: 'absolute', left: 0, top: 0, bottom: 60, width: '35%', background: 'none', border: 'none', cursor: 'pointer', zIndex: 5 }}
-          onClick={(e) => { e.stopPropagation(); goPrev(); }} />
-        <button style={{ position: 'absolute', right: 0, top: 0, bottom: 60, width: '35%', background: 'none', border: 'none', cursor: 'pointer', zIndex: 5 }}
-          onClick={(e) => { e.stopPropagation(); goNext(); }} />
+        <button className="absolute left-0 top-0 bottom-16 w-1/3 z-0" onClick={(e) => { e.stopPropagation(); goPrev(); }} />
+        <button className="absolute right-0 top-0 bottom-16 w-1/3 z-0" onClick={(e) => { e.stopPropagation(); goNext(); }} />
       </div>
     </div>
   );

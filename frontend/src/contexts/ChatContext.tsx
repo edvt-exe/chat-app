@@ -296,14 +296,26 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }
 
   function sendMessage(content: string) {
-    if (!activeConvRef.current) return;
+    if (!activeConvRef.current || !user) return;
+    const convId = activeConvRef.current.id;
+
+    const tempMessage: Message = {
+      id: `temp-${Date.now()}`,
+      conversationId: convId,
+      senderId: user.id,
+      content,
+      messageType: 'TEXT',
+      fileUrl: null, fileName: null, fileSize: null,
+      createdAt: new Date().toISOString(),
+      editedAt: null, deletedAt: null,
+      sender: user,
+      reactions: {},
+    };
+
+    setMessages((prev) => [...prev, tempMessage]);
 
     const socket = getSocket();
-
-    socket?.emit('message:send', {
-      conversationId: activeConvRef.current.id,
-      content,
-    });
+    socket?.emit('message:send', { conversationId: convId, content });
   }
 
   async function sendFile(file: File) {
