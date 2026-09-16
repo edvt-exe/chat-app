@@ -1,10 +1,10 @@
+import { useState, useEffect } from 'react';
 import { useChat } from '../../contexts/ChatContext';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Conversation } from '../../types';
 import UserSearch from './UserSearch';
 import SettingsPanel from '../settings/SettingsPanel';
 import NotificationBell from '../ui/NotificationBell';
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const API = 'http://localhost:3000';
@@ -20,6 +20,27 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') return true;
+      if (saved === 'light') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   function getOtherParticipant(conv: Conversation) {
     return conv.participants?.find((p) => p.userId !== user?.id)?.user;
@@ -40,13 +61,23 @@ export default function Sidebar() {
 
   return (
     <>
-      <div className="w-[280px] shrink-0 flex flex-col h-screen bg-ios-bg border-r border-ios-border">
+      <div className="w-[280px] shrink-0 flex flex-col h-screen bg-ios-bg border-r border-ios-border transition-colors duration-300">
         {/* Header */}
         <div className="px-4 py-4 border-b border-ios-border flex items-center justify-between shrink-0">
-          <span className="text-[20px] font-bold text-white tracking-tight">Chats</span>
+          <span className="text-[20px] font-bold text-ios-text-main tracking-tight">Chats</span>
           <div className="flex items-center gap-2">
+            
+            {/* Buton Dark Mode */}
+            <button 
+              onClick={() => setIsDarkMode(!isDarkMode)} 
+              className="w-8 h-8 rounded-full bg-ios-input text-ios-text-sec hover:text-ios-text-main flex items-center justify-center transition-colors"
+              title="Toggle Theme"
+            >
+              {isDarkMode ? '🌙' : '☀️'}
+            </button>
+
             <NotificationBell />
-            <button onClick={() => setShowSettings(true)} className="w-8 h-8 rounded-full bg-ios-input text-ios-text-sec hover:text-white flex items-center justify-center transition-colors">
+            <button onClick={() => setShowSettings(true)} className="w-8 h-8 rounded-full bg-ios-input text-ios-text-sec hover:text-ios-text-main flex items-center justify-center transition-colors">
               ⚙
             </button>
             <button onClick={() => setShowLogoutConfirm(true)} className="w-8 h-8 rounded-full bg-ios-input text-ios-text-sec hover:text-ios-red flex items-center justify-center transition-colors">
@@ -92,7 +123,7 @@ export default function Sidebar() {
 
                 <div className="flex-1 min-w-0 text-left">
                   <div className="flex justify-between items-center mb-0.5">
-                    <p className={`text-[15px] font-semibold truncate ${isActive ? 'text-white' : 'text-white'}`}>
+                    <p className={`text-[15px] font-semibold truncate ${isActive ? 'text-white' : 'text-ios-text-main'}`}>
                       {getConversationName(conv)}
                     </p>
                     {unread > 0 && (
@@ -103,7 +134,7 @@ export default function Sidebar() {
                       </span>
                     )}
                   </div>
-                  <p className={`text-[13px] truncate ${isActive ? 'text-white/80' : (unread > 0 ? 'text-white font-medium' : 'text-ios-text-sec')}`}>
+                  <p className={`text-[13px] truncate ${isActive ? 'text-white/80' : (unread > 0 ? 'text-ios-text-main font-medium' : 'text-ios-text-sec')}`}>
                     {getLastMessage(conv)}
                   </p>
                 </div>
@@ -124,7 +155,7 @@ export default function Sidebar() {
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-semibold text-white truncate">{user?.username}</p>
+            <p className="text-[14px] font-semibold text-ios-text-main truncate">{user?.username}</p>
             <p className="text-[11px] text-ios-text-sec truncate">{user?.email}</p>
           </div>
         </div>
@@ -136,11 +167,11 @@ export default function Sidebar() {
         {showLogoutConfirm && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md px-4">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-[320px] bg-ios-card rounded-[24px] p-6 text-center shadow-2xl border border-ios-border">
-              <h2 className="text-[20px] font-semibold text-white tracking-tight">Sign Out</h2>
+              <h2 className="text-[20px] font-semibold text-ios-text-main tracking-tight">Sign Out</h2>
               <p className="mt-2 text-[15px] text-ios-text-muted leading-snug">Are you sure you want to sign out?</p>
               <div className="mt-6 flex flex-col gap-2">
                 <button onClick={() => { logout(); setShowLogoutConfirm(false); }} className="w-full py-3.5 bg-ios-red text-white text-[17px] font-semibold rounded-xl hover:opacity-90 transition-opacity">Sign Out</button>
-                <button onClick={() => setShowLogoutConfirm(false)} className="w-full py-3.5 bg-ios-input text-white text-[17px] font-semibold rounded-xl hover:bg-ios-hover transition-colors">Cancel</button>
+                <button onClick={() => setShowLogoutConfirm(false)} className="w-full py-3.5 bg-ios-input text-ios-text-main text-[17px] font-semibold rounded-xl hover:bg-ios-hover transition-colors">Cancel</button>
               </div>
             </motion.div>
           </div>

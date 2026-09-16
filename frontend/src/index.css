@@ -4,6 +4,28 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --input: #e5e5ea;
+  --hover: #d1d1d6;
+  --border: #c6c6c8;
+  --text-main: #000000;
+  --text-sec: #8e8e93;
+  --text-muted: #aeaeb2;
+}
+
+.dark {
+  --bg: #000000;
+  --card: #1c1c1e;
+  --input: #2c2c2e;
+  --hover: #3a3a3c;
+  --border: #38383a;
+  --text-main: #ffffff;
+  --text-sec: #8e8e93;
+  --text-muted: #aeaeb2;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -11,10 +33,11 @@
 }
 
 body {
-  background: #000000;
-  color: #ffffff;
+  background: var(--bg);
+  color: var(--text-main);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::-webkit-scrollbar {
@@ -26,21 +49,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3a3a3c;
+  background: var(--border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #8e8e93;
-}
-
-:root {
-  --bg: #f2f2f7;
-  --card: #ffffff;
-  --text: #000000;
-}
-.dark {
-  --bg: #000000;
-  --card: #1c1c1e;
-  --text: #ffffff;
+  background: var(--text-sec);
 }

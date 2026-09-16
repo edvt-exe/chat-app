@@ -63,23 +63,28 @@ enum MessageType {
 }
 
 model Message {
-  id             String      @id @default(uuid())
-  conversationId String      @map("conversation_id")
-  senderId       String      @map("sender_id")
+  id             String       @id @default(uuid())
+  conversationId String
+  senderId       String
   content        String?
-  messageType    MessageType @default(TEXT) @map("message_type")
-  fileUrl        String?     @map("file_url")
-  fileName       String?     @map("file_name")
-  fileSize       Int?        @map("file_size")
-  createdAt      DateTime    @default(now()) @map("created_at")
-  editedAt       DateTime?   @map("edited_at")
-  deletedAt      DateTime?   @map("deleted_at")
+  messageType    String       @default("TEXT") // TEXT, IMAGE, VIDEO, FILE
+  fileUrl        String?
+  fileName       String?
+  fileSize       Int?
+  createdAt      DateTime     @default(now())
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  seenBy         String[]     @default([])
 
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  reactions    Reaction[]
+  isEdited       Boolean      @default(false)
+  isPinned       Boolean      @default(false)
+  replyToId      String?
+  replyTo        Message?     @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies        Message[]    @relation("MessageReplies")
 
-  @@map("messages")
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id])
+  reactions      Reaction[]
 }
 
 model Reaction {
