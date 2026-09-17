@@ -32,6 +32,7 @@ export interface Conversation {
   participants: { userId: string; user: User }[];
   messages?: Message[];
   unreadCount?: number;
+  createdAt: string;
 }
 
 export interface Story {

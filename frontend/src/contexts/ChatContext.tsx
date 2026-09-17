@@ -12,12 +12,17 @@ interface ChatContextType {
   stories: Story[];
   notifications: Notification[];
   unreadCounts: Record<string, number>;
+  pinnedChats: string[];
+  mutedChats: string[];
   setActiveConversation: (conv: Conversation) => void;
   sendMessage: (content: string) => void;
   sendFile: (file: File) => Promise<void>;
   toggleReaction: (messageId: string, emoji: string) => void;
   reactToStory: (storyId: string, emoji: string) => void;
   startConversation: (targetUserId: string) => Promise<void>;
+  createGroup: (name: string, participantIds: string[]) => Promise<void>;
+  togglePin: (conversationId: string) => void;
+  toggleMute: (conversationId: string) => void;
   loadStories: () => Promise<void>;
   loadConversations: () => Promise<void>;
   deleteMessage: (messageId: string) => Promise<void>;
@@ -31,41 +36,40 @@ function playNotifSound() {
     const ctx = new AudioContext();
     const oscillator = ctx.createOscillator();
     const gainNode = ctx.createGain();
-
     oscillator.connect(gainNode);
     gainNode.connect(ctx.destination);
-
     oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(
-      440,
-      ctx.currentTime + 0.1
-    );
-
+    oscillator.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
     gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(
-      0.001,
-      ctx.currentTime + 0.3
-    );
-
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.3);
-  } catch {
-    // browser poate bloca AudioContext fara interactiune utilizator
-  }
+  } catch {}
 }
 
 export function ChatProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeConversation, setActiveConversationState] =
-    useState<Conversation | null>(null);
+  const [activeConversation, setActiveConversationState] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  
+  const [pinnedChats, setPinnedChats] = useState<string[]>(JSON.parse(localStorage.getItem('pinnedChats') || '[]'));
+  const [mutedChats, setMutedChats] = useState<string[]>(JSON.parse(localStorage.getItem('mutedChats') || '[]'));
 
   const activeConvRef = useRef<Conversation | null>(null);
+  const mutedChatsRef = useRef<string[]>(mutedChats);
+
+  useEffect(() => {
+    mutedChatsRef.current = mutedChats;
+    localStorage.setItem('mutedChats', JSON.stringify(mutedChats));
+  }, [mutedChats]);
+
+  useEffect(() => {
+    localStorage.setItem('pinnedChats', JSON.stringify(pinnedChats));
+  }, [pinnedChats]);
 
   async function loadConversations() {
     try {
@@ -78,202 +82,73 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-
     loadConversations();
   }, [user]);
 
   useEffect(() => {
     const socket = getSocket();
-
     if (!socket) return;
 
     function handleNewMessage(message: Message) {
-      const isActive =
-        activeConvRef.current?.id === message.conversationId;
-
+      const isActive = activeConvRef.current?.id === message.conversationId;
       if (isActive) {
         setMessages((prev) => {
-          if (prev.find((m) => m.id === message.id)) {
-            return prev;
-          }
-
-          return [...prev, message];
+          const filtered = prev.filter(m => !m.id.toString().startsWith('temp-') && m.id !== message.id);
+          return [...filtered, message];
         });
-
-        // Marca mesajul ca vazut daca suntem in conversatie
         const currentSocket = getSocket();
-
-        currentSocket?.emit('message:read', {
-          conversationId: message.conversationId,
-        });
+        currentSocket?.emit('message:read', { conversationId: message.conversationId });
       } else {
-        // Incrementeaza unread count
-        setUnreadCounts((prev) => ({
-          ...prev,
-          [message.conversationId]:
-            (prev[message.conversationId] || 0) + 1,
-        }));
-      }
-
-      setConversations((prev) => {
-        const exists = prev.find(
-          (c) => c.id === message.conversationId
-        );
-
-        if (exists) {
-          return [
-            { ...exists, messages: [message] },
-            ...prev.filter((c) => c.id !== message.conversationId),
-          ];
+        if (!mutedChatsRef.current.includes(message.conversationId)) {
+           setUnreadCounts((prev) => ({ ...prev, [message.conversationId]: (prev[message.conversationId] || 0) + 1 }));
         }
-
+      }
+      setConversations((prev) => {
+        const exists = prev.find((c) => c.id === message.conversationId);
+        if (exists) {
+          return [{ ...exists, messages: [message] }, ...prev.filter((c) => c.id !== message.conversationId)];
+        }
         loadConversations();
         return prev;
       });
     }
 
+    function handleNewConversation(conversation: Conversation) {
+      setConversations((prev) => [conversation, ...prev.filter(c => c.id !== conversation.id)]);
+    }
+
+    function handleMessageDeleted({ messageId }: { messageId: string }) {
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, deletedAt: new Date().toISOString(), content: null } : m));
+    }
+
     function handleNotificationMessage(data: any) {
+      if (mutedChatsRef.current.includes(data.conversationId)) return;
+      
       playNotifSound();
-
-      const notif: Notification = {
-        id: Date.now().toString(),
-        type: 'message',
-        senderName: data.senderName,
-        content: data.content,
-        conversationId: data.conversationId,
-        timestamp: new Date(),
-        read: false,
-      };
-
-      setNotifications((prev) => [
-        notif,
-        ...prev.slice(0, 19),
-      ]);
-
+      const notif: Notification = { id: Date.now().toString(), type: 'message', senderName: data.senderName, content: data.content, conversationId: data.conversationId, timestamp: new Date(), read: false };
+      setNotifications((prev) => [notif, ...prev.slice(0, 19)]);
       if (Notification.permission === 'granted') {
-        new Notification(`${data.senderName}`, {
-          body: data.content,
-          icon: '/favicon.svg',
-        });
+        new Notification(`${data.senderName}`, { body: data.content, icon: '/favicon.svg' });
       }
     }
 
-    function handleNotificationReaction(data: any) {
-      const notif: Notification = {
-        id: Date.now().toString(),
-        type:
-          data.type === 'story'
-            ? 'story_reaction'
-            : 'reaction',
-        senderName: data.senderName,
-        emoji: data.emoji,
-        timestamp: new Date(),
-        read: false,
-      };
-
-      setNotifications((prev) => [
-        notif,
-        ...prev.slice(0, 19),
-      ]);
-    }
-
-    function handleReactionUpdated({
-      messageId,
-      reactions,
-    }: {
-      messageId: string;
-      reactions: any;
-    }) {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === messageId
-            ? { ...m, reactions }
-            : m
-        )
-      );
-    }
-
-    function handleMessageSeen({
-      conversationId,
-      userId: seenByUserId,
-    }: any) {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.conversationId === conversationId
-            ? {
-                ...m,
-                seenBy: [
-                  ...(m.seenBy || []),
-                  seenByUserId,
-                ],
-              }
-            : m
-        )
-      );
-    }
-
-    function handleStoryNew(story: Story) {
-      setStories((prev) => [story, ...prev]);
-    }
-
     socket.on('message:new', handleNewMessage);
-    socket.on(
-      'notification:message',
-      handleNotificationMessage
-    );
-    socket.on(
-      'notification:reaction',
-      handleNotificationReaction
-    );
-    socket.on(
-      'reaction:updated',
-      handleReactionUpdated
-    );
-    socket.on(
-      'message:seen',
-      handleMessageSeen
-    );
-    socket.on('story:new', handleStoryNew);
+    socket.on('conversation:new', handleNewConversation);
+    socket.on('message:deleted', handleMessageDeleted);
+    socket.on('notification:message', handleNotificationMessage);
 
     return () => {
-      socket.off(
-        'message:new',
-        handleNewMessage
-      );
-      socket.off(
-        'notification:message',
-        handleNotificationMessage
-      );
-      socket.off(
-        'notification:reaction',
-        handleNotificationReaction
-      );
-      socket.off(
-        'reaction:updated',
-        handleReactionUpdated
-      );
-      socket.off(
-        'message:seen',
-        handleMessageSeen
-      );
-      socket.off(
-        'story:new',
-        handleStoryNew
-      );
+      socket.off('message:new', handleNewMessage);
+      socket.off('conversation:new', handleNewConversation);
+      socket.off('message:deleted', handleMessageDeleted);
+      socket.off('notification:message', handleNotificationMessage);
     };
-  }, []);
-
-  useEffect(() => {
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
   }, []);
 
   function setActiveConversation(conv: Conversation) {
     activeConvRef.current = conv;
     setActiveConversationState(conv);
     setMessages([]);
-
     setUnreadCounts((prev) => {
       const next = { ...prev };
       delete next[conv.id];
@@ -281,18 +156,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     });
 
     const socket = getSocket();
-
     if (!socket) return;
-
-    socket.emit(
-      'conversation:history',
-      { conversationId: conv.id },
-      (res: any) => {
-        if (res.success) {
-          setMessages(res.messages);
-        }
-      }
-    );
+    socket.emit('conversation:history', { conversationId: conv.id }, (res: any) => {
+      if (res.success) setMessages(res.messages);
+    });
   }
 
   function sendMessage(content: string) {
@@ -300,166 +167,89 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const convId = activeConvRef.current.id;
 
     const tempMessage: Message = {
-      id: `temp-${Date.now()}`,
-      conversationId: convId,
-      senderId: user.id,
-      content,
-      messageType: 'TEXT',
-      fileUrl: null, fileName: null, fileSize: null,
-      createdAt: new Date().toISOString(),
-      editedAt: null, deletedAt: null,
-      sender: user,
-      reactions: {},
+      id: `temp-${Date.now()}`, conversationId: convId, senderId: user.id,
+      content, messageType: 'TEXT', fileUrl: null, fileName: null, fileSize: null,
+      createdAt: new Date().toISOString(), editedAt: null, deletedAt: null,
+      sender: user, reactions: {}, seenBy: [user.id]
     };
-
     setMessages((prev) => [...prev, tempMessage]);
-
-    const socket = getSocket();
-    socket?.emit('message:send', { conversationId: convId, content });
+    getSocket()?.emit('message:send', { conversationId: convId, content });
   }
 
   async function sendFile(file: File) {
-    if (!activeConvRef.current) return;
+    if (!activeConvRef.current || !user) return;
+    const convId = activeConvRef.current.id;
+    let msgType = 'FILE';
+    if (file.type.startsWith('image/')) msgType = 'IMAGE';
+    else if (file.type.startsWith('video/')) msgType = 'VIDEO';
+    else if (file.type.startsWith('audio/')) msgType = 'AUDIO';
 
-    const formData = new FormData();
-    formData.append('file', file);
+    const tempId = `temp-${Date.now()}`;
+    const tempUrl = URL.createObjectURL(file);
+    const tempMessage: Message = {
+      id: tempId, conversationId: convId, senderId: user.id,
+      content: null, messageType: msgType as any, fileUrl: tempUrl, fileName: file.name, fileSize: file.size,
+      createdAt: new Date().toISOString(), editedAt: null, deletedAt: null,
+      sender: user, reactions: {}, seenBy: [user.id]
+    };
+    setMessages((prev) => [...prev, tempMessage]);
 
-    const { data } = await api.post(
-      '/api/upload',
-      formData
-    );
-
-    const socket = getSocket();
-
-    socket?.emit('message:sendFile', {
-      conversationId: activeConvRef.current.id,
-      ...data,
-    });
-  }
-
-  function toggleReaction(
-    messageId: string,
-    emoji: string
-  ) {
-    const socket = getSocket();
-
-    socket?.emit('reaction:toggle', {
-      messageId,
-      emoji,
-    });
-  }
-
-  function reactToStory(
-    storyId: string,
-    emoji: string
-  ) {
-    const socket = getSocket();
-
-    socket?.emit('story:react', {
-      storyId,
-      emoji,
-    });
-  }
-
-  async function startConversation(
-    targetUserId: string
-  ) {
-    const socket = getSocket();
-
-    if (!socket) return;
-
-    socket.emit(
-      'conversation:start',
-      { targetUserId },
-      (res: any) => {
-        if (!res.success) return;
-
-        setConversations((prev) => {
-          const exists = prev.find(
-            (c) => c.id === res.conversation.id
-          );
-
-          if (exists) {
-            setActiveConversation(exists);
-            return prev;
-          }
-
-          setActiveConversation(
-            res.conversation
-          );
-
-          return [
-            res.conversation,
-            ...prev,
-          ];
-        });
-      }
-    );
-  }
-
-  async function loadStories() {
     try {
-      const { data } = await api.get(
-        '/api/stories'
-      );
-
-      setStories(data);
-    } catch {
-      // ignore
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await api.post('/api/upload', formData);
+      getSocket()?.emit('message:sendFile', { conversationId: convId, ...data });
+    } catch (err) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
     }
   }
 
-  async function deleteMessage(
-    messageId: string
-  ) {
-    await api.delete(
-      `/api/messages/${messageId}`
-    );
-
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === messageId
-          ? {
-              ...m,
-              deletedAt:
-                new Date().toISOString(),
-              content: null,
-            }
-          : m
-      )
-    );
+  function togglePin(conversationId: string) {
+    setPinnedChats(prev => prev.includes(conversationId) ? prev.filter(id => id !== conversationId) : [...prev, conversationId]);
   }
 
-  function markNotificationsRead() {
-    setNotifications((prev) =>
-      prev.map((n) => ({
-        ...n,
-        read: true,
-      }))
-    );
+  function toggleMute(conversationId: string) {
+    setMutedChats(prev => prev.includes(conversationId) ? prev.filter(id => id !== conversationId) : [...prev, conversationId]);
+  }
+
+  async function createGroup(name: string, participantIds: string[]) {
+    const socket = getSocket();
+    if (!socket) return;
+    socket.emit('conversation:createGroup', { name, participantIds }, (res: any) => {
+      if (!res.success) return;
+      setConversations((prev) => [res.conversation, ...prev]);
+      setActiveConversation(res.conversation);
+    });
+  }
+
+  async function startConversation(targetUserId: string) {
+    const socket = getSocket();
+    if (!socket) return;
+    socket.emit('conversation:start', { targetUserId }, (res: any) => {
+      if (!res.success) return;
+      setConversations((prev) => {
+        const exists = prev.find((c) => c.id === res.conversation.id);
+        if (exists) { setActiveConversation(exists); return prev; }
+        setActiveConversation(res.conversation);
+        return [res.conversation, ...prev];
+      });
+    });
+  }
+
+  async function deleteMessage(messageId: string) {
+    try {
+      await api.delete(`/api/messages/${messageId}`);
+      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, deletedAt: new Date().toISOString(), content: null } : m));
+      getSocket()?.emit('message:delete', { messageId });
+    } catch (error) {}
   }
 
   return (
-    <ChatContext.Provider
-      value={{
-        conversations,
-        activeConversation,
-        messages,
-        stories,
-        notifications,
-        unreadCounts,
-        setActiveConversation,
-        sendMessage,
-        sendFile,
-        toggleReaction,
-        reactToStory,
-        startConversation,
-        loadStories,
-        loadConversations,
-        deleteMessage,
-        markNotificationsRead,
-      }}
-    >
+    <ChatContext.Provider value={{
+        conversations, activeConversation, messages, stories, notifications, unreadCounts, pinnedChats, mutedChats,
+        setActiveConversation, sendMessage, sendFile, toggleReaction: () => {}, reactToStory: () => {}, 
+        startConversation, createGroup, togglePin, toggleMute, loadStories: async () => {}, loadConversations, deleteMessage, markNotificationsRead: () => {},
+      }}>
       {children}
     </ChatContext.Provider>
   );
@@ -467,12 +257,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
 export function useChat() {
   const ctx = useContext(ChatContext);
-
-  if (!ctx) {
-    throw new Error(
-      'useChat must be used inside ChatProvider'
-    );
-  }
-
+  if (!ctx) throw new Error('useChat must be used inside ChatProvider');
   return ctx;
 }

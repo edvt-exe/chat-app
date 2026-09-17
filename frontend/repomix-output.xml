@@ -1,0 +1,2729 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+public/
+  favicon.svg
+  icons.svg
+src/
+  assets/
+    hero.png
+    react.svg
+    vite.svg
+  components/
+    auth/
+      AuthPage.tsx
+    chat/
+      ChatArea.tsx
+      MessageBubble.tsx
+      MessageInput.tsx
+      Sidebar.tsx
+      TypingIndicator.tsx
+      UserSearch.tsx
+    layout/
+      MainLayout.tsx
+    settings/
+      SettingsPanel.tsx
+    stories/
+      StoriesBar.tsx
+      StoryViewer.tsx
+    ui/
+      Avatar.tsx
+      NotificationBell.tsx
+  contexts/
+    AuthContext.tsx
+    ChatContext.tsx
+  hooks/
+    useSocket.ts
+  services/
+    api.ts
+    socket.ts
+  types/
+    index.ts
+  App.css
+  App.tsx
+  index.css
+  main.tsx
+.gitignore
+.oxlintrc.json
+index.html
+package.json
+postcss.config.js
+tailwind.config.js
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="public/favicon.svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="46" fill="none" viewBox="0 0 48 46"><path fill="#863bff" d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z" style="fill:#863bff;fill:color(display-p3 .5252 .23 1);fill-opacity:1"/><mask id="a" width="48" height="46" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M25.842 44.938c-.664.844-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.183c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.498 0-3.579-1.842-3.579H1.133c-.92 0-1.456-1.04-.92-1.787L9.91.473c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.578 1.842 3.578h11.377c.943 0 1.473 1.088.89 1.832L25.843 44.94z" style="fill:#000;fill-opacity:1"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#ede6ff" rx="5.508" ry="14.704" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -4.47 31.516)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#ede6ff" rx="10.399" ry="29.851" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -39.328 7.883)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#7e14ff" rx="5.508" ry="30.487" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -25.913 -14.639)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -32.644 -3.334)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -34.34 30.47)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#ede6ff" rx="14.072" ry="22.078" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="rotate(93.35 24.506 48.493)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx=".387" cy="8.972" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(39.51 .387 8.972)"/></g><g filter="url(#k)"><ellipse cx="47.523" cy="-6.092" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 47.523 -6.092)"/></g><g filter="url(#l)"><ellipse cx="41.412" cy="6.333" fill="#47bfff" rx="5.971" ry="9.665" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 41.412 6.333)"/></g><g filter="url(#m)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#n)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#o)"><ellipse cx="35.651" cy="29.907" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 35.651 29.907)"/></g><g filter="url(#p)"><ellipse cx="38.418" cy="32.4" fill="#47bfff" rx="5.971" ry="15.297" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 38.418 32.4)"/></g></g><defs><filter id="b" width="60.045" height="41.654" x="-19.77" y="16.149" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-54.613" y="-7.533" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-49.64" y="2.03" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-45.045" y="20.029" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-43.513" y="21.178" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="15.756" y="-17.901" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-27.636" y="-22.853" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="20.116" y="-38.415" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="24.641" y="-11.323" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="8.244" y="-2.416" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="18.713" y="10.588" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter></defs></svg>
+</file>
+
+<file path="public/icons.svg">
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="bluesky-icon" viewBox="0 0 16 17">
+    <g clip-path="url(#bluesky-clip)"><path fill="#08060d" d="M7.75 7.735c-.693-1.348-2.58-3.86-4.334-5.097-1.68-1.187-2.32-.981-2.74-.79C.188 2.065.1 2.812.1 3.251s.241 3.602.398 4.13c.52 1.744 2.367 2.333 4.07 2.145-2.495.37-4.71 1.278-1.805 4.512 3.196 3.309 4.38-.71 4.987-2.746.608 2.036 1.307 5.91 4.93 2.746 2.72-2.746.747-4.143-1.747-4.512 1.702.189 3.55-.4 4.07-2.145.156-.528.397-3.691.397-4.13s-.088-1.186-.575-1.406c-.42-.19-1.06-.395-2.741.79-1.755 1.24-3.64 3.752-4.334 5.099"/></g>
+    <defs><clipPath id="bluesky-clip"><path fill="#fff" d="M.1.85h15.3v15.3H.1z"/></clipPath></defs>
+  </symbol>
+  <symbol id="discord-icon" viewBox="0 0 20 19">
+    <path fill="#08060d" d="M16.224 3.768a14.5 14.5 0 0 0-3.67-1.153c-.158.286-.343.67-.47.976a13.5 13.5 0 0 0-4.067 0c-.128-.306-.317-.69-.476-.976A14.4 14.4 0 0 0 3.868 3.77C1.546 7.28.916 10.703 1.231 14.077a14.7 14.7 0 0 0 4.5 2.306q.545-.748.965-1.587a9.5 9.5 0 0 1-1.518-.74q.191-.14.372-.293c2.927 1.369 6.107 1.369 8.999 0q.183.152.372.294-.723.437-1.52.74.418.838.963 1.588a14.6 14.6 0 0 0 4.504-2.308c.37-3.911-.63-7.302-2.644-10.309m-9.13 8.234c-.878 0-1.599-.82-1.599-1.82 0-.998.705-1.82 1.6-1.82.894 0 1.614.82 1.599 1.82.001 1-.705 1.82-1.6 1.82m5.91 0c-.878 0-1.599-.82-1.599-1.82 0-.998.705-1.82 1.6-1.82.893 0 1.614.82 1.599 1.82 0 1-.706 1.82-1.6 1.82"/>
+  </symbol>
+  <symbol id="documentation-icon" viewBox="0 0 21 20">
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="m15.5 13.333 1.533 1.322c.645.555.967.833.967 1.178s-.322.623-.967 1.179L15.5 18.333m-3.333-5-1.534 1.322c-.644.555-.966.833-.966 1.178s.322.623.966 1.179l1.534 1.321"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M17.167 10.836v-4.32c0-1.41 0-2.117-.224-2.68-.359-.906-1.118-1.621-2.08-1.96-.599-.21-1.349-.21-2.848-.21-2.623 0-3.935 0-4.983.369-1.684.591-3.013 1.842-3.641 3.428C3 6.449 3 7.684 3 10.154v2.122c0 2.558 0 3.838.706 4.726q.306.383.713.671c.76.536 1.79.64 3.581.66"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M3 10a2.78 2.78 0 0 1 2.778-2.778c.555 0 1.209.097 1.748-.047.48-.129.854-.503.982-.982.145-.54.048-1.194.048-1.749a2.78 2.78 0 0 1 2.777-2.777"/>
+  </symbol>
+  <symbol id="github-icon" viewBox="0 0 19 19">
+    <path fill="#08060d" fill-rule="evenodd" d="M9.356 1.85C5.05 1.85 1.57 5.356 1.57 9.694a7.84 7.84 0 0 0 5.324 7.44c.387.079.528-.168.528-.376 0-.182-.013-.805-.013-1.454-2.165.467-2.616-.935-2.616-.935-.349-.91-.864-1.143-.864-1.143-.71-.48.051-.48.051-.48.787.051 1.2.805 1.2.805.695 1.194 1.817.857 2.268.649.064-.507.27-.857.49-1.052-1.728-.182-3.545-.857-3.545-3.87 0-.857.31-1.558.8-2.104-.078-.195-.349-1 .077-2.078 0 0 .657-.208 2.14.805a7.5 7.5 0 0 1 1.946-.26c.657 0 1.328.092 1.946.26 1.483-1.013 2.14-.805 2.14-.805.426 1.078.155 1.883.078 2.078.502.546.799 1.247.799 2.104 0 3.013-1.818 3.675-3.558 3.87.284.247.528.714.528 1.454 0 1.052-.012 1.896-.012 2.156 0 .208.142.455.528.377a7.84 7.84 0 0 0 5.324-7.441c.013-4.338-3.48-7.844-7.773-7.844" clip-rule="evenodd"/>
+  </symbol>
+  <symbol id="social-icon" viewBox="0 0 20 20">
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M12.5 6.667a4.167 4.167 0 1 0-8.334 0 4.167 4.167 0 0 0 8.334 0"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M2.5 16.667a5.833 5.833 0 0 1 8.75-5.053m3.837.474.513 1.035c.07.144.257.282.414.309l.93.155c.596.1.736.536.307.965l-.723.73a.64.64 0 0 0-.152.531l.207.903c.164.715-.213.991-.84.618l-.872-.52a.63.63 0 0 0-.577 0l-.872.52c-.624.373-1.003.094-.84-.618l.207-.903a.64.64 0 0 0-.152-.532l-.723-.729c-.426-.43-.289-.864.306-.964l.93-.156a.64.64 0 0 0 .412-.31l.513-1.034c.28-.562.735-.562 1.012 0"/>
+  </symbol>
+  <symbol id="x-icon" viewBox="0 0 19 19">
+    <path fill="#08060d" fill-rule="evenodd" d="M1.893 1.98c.052.072 1.245 1.769 2.653 3.77l2.892 4.114c.183.261.333.48.333.486s-.068.089-.152.183l-.522.593-.765.867-3.597 4.087c-.375.426-.734.834-.798.905a1 1 0 0 0-.118.148c0 .01.236.017.664.017h.663l.729-.83c.4-.457.796-.906.879-.999a692 692 0 0 0 1.794-2.038c.034-.037.301-.34.594-.675l.551-.624.345-.392a7 7 0 0 1 .34-.374c.006 0 .93 1.306 2.052 2.903l2.084 2.965.045.063h2.275c1.87 0 2.273-.003 2.266-.021-.008-.02-1.098-1.572-3.894-5.547-2.013-2.862-2.28-3.246-2.273-3.266.008-.019.282-.332 2.085-2.38l2-2.274 1.567-1.782c.022-.028-.016-.03-.65-.03h-.674l-.3.342a871 871 0 0 1-1.782 2.025c-.067.075-.405.458-.75.852a100 100 0 0 1-.803.91c-.148.172-.299.344-.99 1.127-.304.343-.32.358-.345.327-.015-.019-.904-1.282-1.976-2.808L6.365 1.85H1.8zm1.782.91 8.078 11.294c.772 1.08 1.413 1.973 1.425 1.984.016.017.241.02 1.05.017l1.03-.004-2.694-3.766L7.796 5.75 5.722 2.852l-1.039-.004-1.039-.004z" clip-rule="evenodd"/>
+  </symbol>
+</svg>
+</file>
+
+<file path="src/assets/react.svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
+</file>
+
+<file path="src/assets/vite.svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="77" height="47" fill="none" aria-labelledby="vite-logo-title" viewBox="0 0 77 47"><title id="vite-logo-title">Vite</title><style>.parenthesis{fill:#000}@media (prefers-color-scheme:dark){.parenthesis{fill:#fff}}</style><path fill="#9135ff" d="M40.151 45.71c-.663.844-2.02.374-2.02-.699V34.708a2.26 2.26 0 0 0-2.262-2.262H24.493c-.92 0-1.457-1.04-.92-1.788l7.479-10.471c1.07-1.498 0-3.578-1.842-3.578H15.443c-.92 0-1.456-1.04-.92-1.788l9.696-13.576c.213-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.472c-1.07 1.497 0 3.578 1.842 3.578h11.376c.944 0 1.474 1.087.89 1.83L40.153 45.712z"/><mask id="a" width="48" height="47" x="14" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M40.047 45.71c-.663.843-2.02.374-2.02-.699V34.708a2.26 2.26 0 0 0-2.262-2.262H24.389c-.92 0-1.457-1.04-.92-1.788l7.479-10.472c1.07-1.497 0-3.578-1.842-3.578H15.34c-.92 0-1.456-1.04-.92-1.788l9.696-13.575c.213-.297.556-.474.92-.474H53.93c.92 0 1.456 1.04.92 1.788L47.37 13.03c-1.07 1.498 0 3.578 1.842 3.578h11.376c.944 0 1.474 1.088.89 1.831L40.049 45.712z"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#eee6ff" rx="5.508" ry="14.704" transform="rotate(269.814 20.96 11.29)scale(-1 1)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#eee6ff" rx="10.399" ry="29.851" transform="rotate(89.814 -16.902 -8.275)scale(1 -1)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#8900ff" rx="5.508" ry="30.487" transform="rotate(89.814 -19.197 -7.127)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#8900ff" rx="5.508" ry="30.599" transform="rotate(89.814 -25.928 4.177)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#8900ff" rx="5.508" ry="30.599" transform="rotate(89.814 -25.738 5.52)scale(1 -1)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#eee6ff" rx="14.072" ry="22.078" transform="rotate(93.35 31.245 55.578)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#8900ff" rx="3.47" ry="21.501" transform="rotate(89.009 35.419 55.202)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#8900ff" rx="3.47" ry="21.501" transform="rotate(89.009 35.419 55.202)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx="14.592" cy="9.743" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(39.51 14.592 9.743)"/></g><g filter="url(#k)"><ellipse cx="61.728" cy="-5.321" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 61.728 -5.32)"/></g><g filter="url(#l)"><ellipse cx="55.618" cy="7.104" fill="#00c2ff" rx="5.971" ry="9.665" transform="rotate(37.892 55.618 7.104)"/></g><g filter="url(#m)"><ellipse cx="12.326" cy="39.103" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 12.326 39.103)"/></g><g filter="url(#n)"><ellipse cx="12.326" cy="39.103" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 12.326 39.103)"/></g><g filter="url(#o)"><ellipse cx="49.857" cy="30.678" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 49.857 30.678)"/></g><g filter="url(#p)"><ellipse cx="52.623" cy="33.171" fill="#00c2ff" rx="5.971" ry="15.297" transform="rotate(37.892 52.623 33.17)"/></g></g><path d="M6.919 0c-9.198 13.166-9.252 33.575 0 46.789h6.215c-9.25-13.214-9.196-33.623 0-46.789zm62.424 0h-6.215c9.198 13.166 9.252 33.575 0 46.789h6.215c9.25-13.214 9.196-33.623 0-46.789" class="parenthesis"/><defs><filter id="b" width="60.045" height="41.654" x="-5.564" y="16.92" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-40.407" y="-6.762" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-35.435" y="2.801" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-30.84" y="20.8" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-29.307" y="21.949" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="29.961" y="-17.13" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="37.754" y="3.055" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="37.754" y="3.055" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-13.43" y="-22.082" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="34.321" y="-37.644" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="38.847" y="-10.552" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-15.081" y="6.78" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-15.081" y="6.78" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="22.45" y="-1.645" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="32.919" y="11.36" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter></defs></svg>
+</file>
+
+<file path="src/components/auth/AuthPage.tsx">
+import { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
+
+interface PasswordStrength {
+  hasUpper: boolean;
+  hasLower: boolean;
+  hasNumber: boolean;
+  hasSpecial: boolean;
+  hasLength: boolean;
+}
+
+function checkPassword(pwd: string): PasswordStrength {
+  return {
+    hasUpper: /[A-Z]/.test(pwd),
+    hasLower: /[a-z]/.test(pwd),
+    hasNumber: /[0-9]/.test(pwd),
+    hasSpecial: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(pwd),
+    hasLength: pwd.length >= 8,
+  };
+}
+
+function StrengthRow({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`text-[12px] ${ok ? 'text-ios-green' : 'text-ios-text-sec'}`}>
+        {ok ? '✓' : '○'}
+      </span>
+      <span className={`text-[11px] ${ok ? 'text-ios-green' : 'text-ios-text-sec'}`}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+type Step = 'credentials' | 'verify';
+
+export default function AuthPage() {
+  const { login } = useAuth();
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [step, setStep] = useState<Step>('credentials');
+  const [pendingUserId, setPendingUserId] = useState('');
+  const [form, setForm] = useState({ username: '', email: '', password: '', identifier: '' });
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showStrength, setShowStrength] = useState(false);
+
+  const strength = checkPassword(form.password);
+  const passwordValid = Object.values(strength).every(Boolean);
+
+  const inputClass = "w-full rounded-xl px-4 py-3 text-[17px] bg-ios-input text-white placeholder-ios-text-sec outline-none transition-colors";
+  const labelClass = "block text-[13px] font-medium mb-1.5 text-ios-text-muted";
+
+  async function handleCredentials(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+
+    if (mode === 'register') {
+      if (!passwordValid) { setError('Password does not meet all requirements'); return; }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email)) { setError('Please enter a valid email address'); return; }
+    }
+
+    setLoading(true);
+    try {
+      if (mode === 'register') {
+        const { data } = await api.post('/api/auth/register', {
+          username: form.username,
+          email: form.email,
+          password: form.password,
+        });
+        setSuccessMsg('Cont creat cu succes! Se Redirecționează...');
+        setTimeout(() => {
+          login(data.user, data.token);
+        }, 1200);
+      } else {
+        const { data } = await api.post('/api/auth/login', {
+          identifier: form.identifier,
+          password: form.password,
+        });
+
+        if (data.userId) {
+          setPendingUserId(data.userId);
+          setStep('verify');
+        } else if (data.token) {
+          setSuccessMsg('Autentificare reușită! Se Redirecționează...');
+          setTimeout(() => {
+            login(data.user, data.token);
+          }, 1200);
+        }
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Something went wrong');
+      setLoading(false);
+    }
+  }
+
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+    setLoading(true);
+    try {
+      const { data } = await api.post('/api/auth/verify-code', {
+        userId: pendingUserId,
+        code: code.trim(),
+      });
+      setSuccessMsg('Autentificare reușită! Se Redirecționează...');
+      setTimeout(() => {
+        login(data.user, data.token);
+      }, 1200);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Invalid code');
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-ios-bg">
+      <div className="w-full max-w-[360px]">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-white tracking-tight mb-2">NexusChat</h1>
+          <p className="text-[15px] text-ios-text-sec">Sign in to continue</p>
+        </div>
+
+        <div className="bg-ios-card rounded-[24px] p-6 shadow-2xl border border-ios-border">
+          {step === 'verify' ? (
+            <form onSubmit={handleVerifyCode} className="space-y-4">
+              <div className="text-center mb-6">
+                <p className="text-[17px] text-white font-semibold tracking-tight">Check your email</p>
+                <p className="text-[13px] mt-1 text-ios-text-sec">We sent a 6-digit code</p>
+              </div>
+
+              <div>
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="000000"
+                  className={`${inputClass} text-center text-2xl tracking-[0.5em] font-bold`}
+                  maxLength={6}
+                  required
+                  autoFocus
+                />
+              </div>
+
+              {error && <p className="text-[13px] text-ios-red text-center">{error}</p>}
+              {successMsg && <p className="text-[13px] text-ios-green font-medium text-center">{successMsg}</p>}
+
+              <button
+                type="submit"
+                disabled={loading || code.length !== 6}
+                className="w-full bg-ios-blue text-white text-[17px] font-semibold py-3.5 rounded-xl transition-colors disabled:opacity-50 mt-2"
+              >
+                {loading ? 'Verifying...' : 'Verify'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setStep('credentials'); setCode(''); setError(''); setSuccessMsg(''); }}
+                className="w-full text-[15px] text-ios-blue mt-4"
+              >
+                Back to login
+              </button>
+            </form>
+          ) : (
+            <>
+              {/* iOS Segmented Control */}
+              <div className="flex bg-ios-input p-[3px] rounded-[9px] w-full mb-6">
+                {(['login', 'register'] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => { setMode(m); setError(''); setSuccessMsg(''); setShowStrength(false); }}
+                    className={`flex-1 py-1.5 px-1 text-[13px] font-medium rounded-md transition-all duration-200 ${
+                      mode === m ? 'bg-[#636366] text-white shadow-sm' : 'text-ios-text-muted hover:text-white'
+                    }`}
+                  >
+                    {m === 'login' ? 'Sign In' : 'Create Account'}
+                  </button>
+                ))}
+              </div>
+
+              <form onSubmit={handleCredentials} className="space-y-4">
+                {mode === 'register' && (
+                  <>
+                    <div>
+                      <label className={labelClass}>Username</label>
+                      <input
+                        type="text"
+                        value={form.username}
+                        onChange={(e) => setForm({ ...form, username: e.target.value })}
+                        placeholder="yourname"
+                        className={inputClass}
+                        required
+                        minLength={3}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Email</label>
+                      <input
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        placeholder="you@example.com"
+                        className={inputClass}
+                        required
+                      />
+                    </div>
+                  </>
+                )}
+
+                {mode === 'login' && (
+                  <div>
+                    <label className={labelClass}>Username or Email</label>
+                    <input
+                      type="text"
+                      value={form.identifier}
+                      onChange={(e) => setForm({ ...form, identifier: e.target.value })}
+                      placeholder="Username or Email"
+                      className={inputClass}
+                      required
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className={labelClass}>Password</label>
+                  <input
+                    type="password"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    onFocus={() => mode === 'register' && setShowStrength(true)}
+                    placeholder="••••••••"
+                    className={inputClass}
+                    required
+                  />
+                  {mode === 'register' && showStrength && (
+                    <div className="mt-3 p-3 rounded-xl bg-ios-bg space-y-1.5 border border-ios-border">
+                      <StrengthRow ok={strength.hasLength} label="At least 8 characters" />
+                      <StrengthRow ok={strength.hasUpper} label="One uppercase letter (A-Z)" />
+                      <StrengthRow ok={strength.hasLower} label="One lowercase letter (a-z)" />
+                      <StrengthRow ok={strength.hasNumber} label="One number (0-9)" />
+                      <StrengthRow ok={strength.hasSpecial} label="One special character (!@#$...)" />
+                    </div>
+                  )}
+                </div>
+
+                {error && <p className="text-[13px] text-ios-red text-center pt-2">{error}</p>}
+                {successMsg && <p className="text-[13px] text-ios-green font-medium text-center pt-2">{successMsg}</p>}
+
+                <button
+                  type="submit"
+                  disabled={loading || (mode === 'register' && !passwordValid)}
+                  className="w-full mt-2 bg-ios-blue text-white text-[17px] font-semibold py-3.5 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/chat/ChatArea.tsx">
+import { useEffect, useRef, useState } from 'react';
+import { useChat } from '../../contexts/ChatContext';
+import { useAuth } from '../../contexts/AuthContext';
+import MessageBubble from './MessageBubble';
+import MessageInput from './MessageInput';
+import TypingIndicator from './TypingIndicator';
+import StoriesBar from '../stories/StoriesBar';
+
+const API = 'http://localhost:3000';
+
+function getAvatarUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${API}${url}`;
+}
+
+export default function ChatArea() {
+  const { activeConversation, messages } = useChat();
+  const { user } = useAuth();
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const [wallpaper, setWallpaper] = useState(localStorage.getItem('wallpaper') || '');
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    function handleWallpaperChange() {
+      setWallpaper(localStorage.getItem('wallpaper') || '');
+    }
+    window.addEventListener('wallpaper-change', handleWallpaperChange);
+    return () => window.removeEventListener('wallpaper-change', handleWallpaperChange);
+  }, []);
+
+  function getOtherUser(conv: typeof activeConversation) {
+    if (!conv) return null;
+    return conv.participants?.find((p) => p.userId !== user?.id)?.user || null;
+  }
+
+  const otherUser = getOtherUser(activeConversation);
+
+  return (
+    <div className="flex-1 flex flex-col h-screen overflow-hidden bg-ios-bg relative">
+      <div className="shrink-0 z-10 relative">
+        <StoriesBar />
+      </div>
+
+      {activeConversation ? (
+        <>
+          {/* Header blur */}
+          <div className="shrink-0 px-5 py-3 border-b border-ios-border bg-ios-bg/70 backdrop-blur-2xl flex items-center gap-3 z-10">
+            {otherUser ? (
+              <div className="relative shrink-0">
+                <div className="w-10 h-10 rounded-full bg-ios-hover flex items-center justify-center text-[15px] font-semibold text-white overflow-hidden">
+                  {otherUser.avatarUrl ? (
+                    <img src={getAvatarUrl(otherUser.avatarUrl) || ''} className="w-full h-full object-cover" alt="" />
+                  ) : (
+                    otherUser.username[0].toUpperCase()
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-ios-hover flex items-center justify-center text-[18px]">👥</div>
+            )}
+            <div>
+              <p className="text-[15px] font-semibold text-white leading-tight">
+                {activeConversation.name || otherUser?.username || 'Unknown'}
+              </p>
+              {otherUser?.isOnline ? (
+                <p className="text-[12px] text-ios-text-sec mt-0.5">Active Now</p>
+              ) : otherUser?.lastSeenAt ? (
+                <p className="text-[12px] text-ios-text-sec mt-0.5">
+                  Last seen {new Date(otherUser.lastSeenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <div 
+            className="flex-1 overflow-y-auto px-5 py-4 z-0 relative"
+            style={wallpaper ? { backgroundImage: `url(${wallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+          >
+            {wallpaper && <div className="absolute inset-0 bg-black/50 pointer-events-none" />}
+            
+            <div className="relative z-10">
+              {messages.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-[50vh] gap-3">
+                  <p className="text-[13px] text-ios-text-sec">Say hi!</p>
+                </div>
+              )}
+              {messages.map((msg, idx) => (
+                <MessageBubble 
+                  key={msg.id} 
+                  message={msg} 
+                  isLast={idx === messages.length - 1} 
+                  otherUserId={otherUser?.id}
+                />
+              ))}
+              <div ref={bottomRef} />
+            </div>
+          </div>
+
+          <div className="shrink-0 z-10 bg-ios-bg border-t border-ios-border">
+            <TypingIndicator conversationId={activeConversation.id} />
+            <MessageInput />
+          </div>
+        </>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 z-10">
+          <p className="text-[18px] text-ios-text-sec font-medium">Select a chat to start messaging</p>
+        </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/chat/MessageBubble.tsx">
+import { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useChat } from '../../contexts/ChatContext';
+import type { Message } from '../../types';
+
+interface MessageBubbleProps {
+  message: Message;
+}
+
+export default function MessageBubble({ message }: MessageBubbleProps) {
+  const { user } = useAuth();
+  const { deleteMessage } = useChat();
+  const [showMenu, setShowMenu] = useState(false);
+
+  const isOutgoing = message.senderId === user?.id;
+  const isDeleted = Boolean(message.deletedAt);
+  const isTemp = message.id.toString().startsWith('temp-');
+
+  // Logica pentru Bifele de citit (WhatsApp Style)
+  const isSeen = (message.seenBy || []).some((id) => id !== user?.id);
+
+  function formatTime(dateStr: string) {
+    return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  return (
+    <div className={`flex flex-col mb-2 group ${isOutgoing ? 'items-end' : 'items-start'}`}>
+      <div className="relative max-w-[70%] flex items-center gap-2">
+        
+        {/* Meniu de Unsend / Opțiuni (la hover pe mesajele proprii) */}
+        {isOutgoing && !isDeleted && !isTemp && (
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="opacity-0 group-hover:opacity-100 p-1 text-ios-text-sec hover:text-ios-text-main transition-opacity text-xs"
+            >
+              •••
+            </button>
+
+            {showMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                <div className="absolute right-0 bottom-6 bg-ios-card border border-ios-border rounded-xl shadow-xl z-20 py-1 min-w-[110px]">
+                  <button
+                    onClick={() => {
+                      deleteMessage(message.id);
+                      setShowMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-[13px] text-ios-red hover:bg-ios-input transition-colors font-medium flex items-center gap-1.5"
+                  >
+                    <span>🗑</span> Unsend
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Bula de Mesaj */}
+        <div
+          className={`px-4 py-2.5 rounded-[20px] text-[15px] leading-relaxed break-words shadow-sm transition-colors ${
+            isDeleted
+              ? 'bg-ios-input/40 text-ios-text-sec italic border border-ios-border/50'
+              : isOutgoing
+              ? 'bg-ios-blue text-white rounded-br-[4px]'
+              : 'bg-ios-input text-ios-text-main rounded-bl-[4px]'
+          }`}
+        >
+          {isDeleted ? (
+            <span>🚫 {isOutgoing ? 'You unsent this message' : 'This message was deleted'}</span>
+          ) : (
+            <span>{message.content}</span>
+          )}
+
+          {/* Ora și Bifele de citit */}
+          <div className={`flex items-center justify-end gap-1 text-[11px] mt-1 ${
+            isOutgoing ? 'text-white/80' : 'text-ios-text-sec'
+          }`}>
+            <span>{formatTime(message.createdAt)}</span>
+
+            {isOutgoing && !isDeleted && (
+              <span className="font-bold text-[12px] leading-none">
+                {isTemp ? (
+                  '🕒'
+                ) : isSeen ? (
+                  <span className="text-cyan-300 font-bold tracking-tighter">✓✓</span>
+                ) : (
+                  <span className="opacity-70 tracking-tighter">✓✓</span>
+                )}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/chat/MessageInput.tsx">
+import { useState, useRef } from 'react';
+import { useChat } from '../../contexts/ChatContext';
+import { getSocket } from '../../services/socket';
+
+export default function MessageInput() {
+  const { sendMessage, sendFile, activeConversation } = useChat();
+  const [text, setText] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
+  const typingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!text.trim() || !activeConversation) return;
+    sendMessage(text.trim());
+    setText('');
+    const socket = getSocket();
+    if (socket) socket.emit('typing:stop', { conversationId: activeConversation.id });
+  }
+
+  function handleTyping(e: React.ChangeEvent<HTMLInputElement>) {
+    setText(e.target.value);
+    const socket = getSocket();
+    if (!activeConversation || !socket) return;
+    socket.emit('typing:start', { conversationId: activeConversation.id });
+    if (typingRef.current) clearTimeout(typingRef.current);
+    typingRef.current = setTimeout(() => {
+      socket.emit('typing:stop', { conversationId: activeConversation.id });
+    }, 1500);
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await sendFile(file);
+    e.target.value = '';
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex items-center gap-2 px-4 py-3 bg-ios-bg">
+      <input ref={fileRef} type="file" className="hidden" onChange={handleFileChange} />
+      
+      <button type="button" onClick={() => fileRef.current?.click()} className="w-8 h-8 rounded-full bg-ios-input text-ios-text-sec flex items-center justify-center shrink-0">
+        +
+      </button>
+
+      <input
+        value={text}
+        onChange={handleTyping}
+        placeholder={activeConversation ? 'iMessage' : ''}
+        disabled={!activeConversation}
+        className="flex-1 rounded-full bg-ios-input px-4 py-1.5 text-[15px] text-white placeholder-ios-text-sec outline-none disabled:opacity-50 border border-ios-border/50"
+      />
+
+      <button type="submit" disabled={!text.trim() || !activeConversation} className="w-8 h-8 rounded-full bg-ios-blue text-white flex items-center justify-center shrink-0 disabled:opacity-50">
+        ↑
+      </button>
+    </form>
+  );
+}
+</file>
+
+<file path="src/components/chat/Sidebar.tsx">
+import { useState, useEffect } from 'react';
+import { useChat } from '../../contexts/ChatContext';
+import { useAuth } from '../../contexts/AuthContext';
+import type { Conversation } from '../../types';
+import UserSearch from './UserSearch';
+import SettingsPanel from '../settings/SettingsPanel';
+import NotificationBell from '../ui/NotificationBell';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const API = 'http://localhost:3000';
+
+function getAvatarUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${API}${url}`;
+}
+
+export default function Sidebar() {
+  const { conversations, setActiveConversation, activeConversation, unreadCounts } = useChat();
+  const { user, logout } = useAuth();
+  const [showSettings, setShowSettings] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') return true;
+      if (saved === 'light') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  function getOtherParticipant(conv: Conversation) {
+    return conv.participants?.find((p) => p.userId !== user?.id)?.user;
+  }
+
+  function getConversationName(conv: Conversation) {
+    if (conv.name) return conv.name;
+    return getOtherParticipant(conv)?.username || 'Unknown';
+  }
+
+  function getLastMessage(conv: Conversation) {
+    const msgs = conv.messages;
+    if (!msgs || msgs.length === 0) return 'No messages yet';
+    const last = msgs[0];
+    if (last.messageType !== 'TEXT') return `📎 ${last.fileName || 'File'}`;
+    return last.content || '';
+  }
+
+  return (
+    <>
+      <div className="w-[280px] shrink-0 flex flex-col h-screen bg-ios-bg border-r border-ios-border transition-colors duration-300">
+        {/* Header */}
+        <div className="px-4 py-4 border-b border-ios-border flex items-center justify-between shrink-0">
+          <span className="text-[20px] font-bold text-ios-text-main tracking-tight">Chats</span>
+          <div className="flex items-center gap-2">
+            
+            {/* Buton Dark Mode */}
+            <button 
+              onClick={() => setIsDarkMode(!isDarkMode)} 
+              className="w-8 h-8 rounded-full bg-ios-input text-ios-text-sec hover:text-ios-text-main flex items-center justify-center transition-colors"
+              title="Toggle Theme"
+            >
+              {isDarkMode ? '🌙' : '☀️'}
+            </button>
+
+            <NotificationBell />
+            <button onClick={() => setShowSettings(true)} className="w-8 h-8 rounded-full bg-ios-input text-ios-text-sec hover:text-ios-text-main flex items-center justify-center transition-colors">
+              ⚙
+            </button>
+            <button onClick={() => setShowLogoutConfirm(true)} className="w-8 h-8 rounded-full bg-ios-input text-ios-text-sec hover:text-ios-red flex items-center justify-center transition-colors">
+              ⏻
+            </button>
+          </div>
+        </div>
+
+        <UserSearch />
+
+        {/* Conversations List */}
+        <div className="flex-1 overflow-y-auto px-2 py-2">
+          {conversations.length === 0 ? (
+            <div className="text-center py-10 px-4">
+              <p className="text-[13px] text-ios-text-sec">No conversations yet</p>
+            </div>
+          ) : conversations.map((conv) => {
+            const other = getOtherParticipant(conv);
+            const isActive = conv.id === activeConversation?.id;
+            const unread = unreadCounts[conv.id] || 0;
+
+            return (
+              <button
+                key={conv.id}
+                onClick={() => setActiveConversation(conv)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-colors ${
+                  isActive ? 'bg-ios-blue text-white' : 'hover:bg-ios-input'
+                }`}
+              >
+                {/* Avatar */}
+                <div className="relative shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-ios-hover flex items-center justify-center text-[16px] font-semibold text-white overflow-hidden">
+                    {other?.avatarUrl ? (
+                      <img src={getAvatarUrl(other.avatarUrl) || ''} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      (other?.username || '?')[0].toUpperCase()
+                    )}
+                  </div>
+                  {other?.isOnline && (
+                    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-ios-green border-[2.5px] border-ios-bg" />
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0 text-left">
+                  <div className="flex justify-between items-center mb-0.5">
+                    <p className={`text-[15px] font-semibold truncate ${isActive ? 'text-white' : 'text-ios-text-main'}`}>
+                      {getConversationName(conv)}
+                    </p>
+                    {unread > 0 && (
+                      <span className={`px-1.5 min-w-[18px] h-[18px] rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ml-2 ${
+                        isActive ? 'bg-white text-ios-blue' : 'bg-ios-blue text-white'
+                      }`}>
+                        {unread > 99 ? '99+' : unread}
+                      </span>
+                    )}
+                  </div>
+                  <p className={`text-[13px] truncate ${isActive ? 'text-white/80' : (unread > 0 ? 'text-ios-text-main font-medium' : 'text-ios-text-sec')}`}>
+                    {getLastMessage(conv)}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* User Footer */}
+        <div className="px-4 py-3 border-t border-ios-border flex items-center gap-3 shrink-0 bg-ios-card/50">
+          <div className="relative shrink-0">
+            <div className="w-9 h-9 rounded-full bg-ios-hover flex items-center justify-center text-[13px] font-semibold text-white overflow-hidden">
+              {user?.avatarUrl ? (
+                <img src={getAvatarUrl(user.avatarUrl) || ''} className="w-full h-full object-cover" alt="" />
+              ) : (
+                (user?.username || 'U')[0].toUpperCase()
+              )}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[14px] font-semibold text-ios-text-main truncate">{user?.username}</p>
+            <p className="text-[11px] text-ios-text-sec truncate">{user?.email}</p>
+          </div>
+        </div>
+      </div>
+
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md px-4">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-[320px] bg-ios-card rounded-[24px] p-6 text-center shadow-2xl border border-ios-border">
+              <h2 className="text-[20px] font-semibold text-ios-text-main tracking-tight">Sign Out</h2>
+              <p className="mt-2 text-[15px] text-ios-text-muted leading-snug">Are you sure you want to sign out?</p>
+              <div className="mt-6 flex flex-col gap-2">
+                <button onClick={() => { logout(); setShowLogoutConfirm(false); }} className="w-full py-3.5 bg-ios-red text-white text-[17px] font-semibold rounded-xl hover:opacity-90 transition-opacity">Sign Out</button>
+                <button onClick={() => setShowLogoutConfirm(false)} className="w-full py-3.5 bg-ios-input text-ios-text-main text-[17px] font-semibold rounded-xl hover:bg-ios-hover transition-colors">Cancel</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+</file>
+
+<file path="src/components/chat/TypingIndicator.tsx">
+import { useState, useEffect } from 'react';
+import { getSocket } from '../../services/socket';
+
+interface Props {
+  conversationId: string;
+}
+
+export default function TypingIndicator({ conversationId }: Props) {
+  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleStart = ({ userId, username }: { userId: string; username: string }) => {
+      setTypingUsers((prev) => ({ ...prev, [userId]: username }));
+    };
+
+    const handleStop = ({ userId }: { userId: string }) => {
+      setTypingUsers((prev) => {
+        const next = { ...prev };
+        delete next[userId];
+        return next;
+      });
+    };
+
+    socket.on('typing:start', handleStart);
+    socket.on('typing:stop', handleStop);
+
+    return () => {
+      socket.off('typing:start', handleStart);
+      socket.off('typing:stop', handleStop);
+    };
+  }, [conversationId]);
+
+  const names = Object.values(typingUsers);
+  if (names.length === 0) return null;
+
+  return (
+    <div className="flex items-center gap-2 px-5 pb-2">
+      <div className="flex gap-0.5">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="w-1.5 h-1.5 rounded-full"
+            style={{
+              background: '#00c8ff',
+              animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+      <span className="text-xs" style={{ color: 'rgba(0,200,255,0.5)' }}>
+        {names.join(', ')} {names.length === 1 ? 'is' : 'are'} typing...
+      </span>
+      <style>{`
+        @keyframes bounce {
+          0%, 60%, 100% { transform: translateY(0); }
+          30% { transform: translateY(-4px); }
+        }
+      `}</style>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/chat/UserSearch.tsx">
+import { useState, useRef, useEffect } from 'react';
+import api from '../../services/api';
+import { useChat } from '../../contexts/ChatContext';
+
+interface UserResult {
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+  isOnline: boolean;
+}
+
+export default function UserSearch() {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<UserResult[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { startConversation } = useChat();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (query.length < 2) { setResults([]); return; }
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const { data } = await api.get(`/api/users/search?q=${query}`);
+        setResults(data);
+      } finally { setLoading(false); }
+    }, 300);
+  }, [query]);
+
+  async function handleSelect(userId: string) {
+    await startConversation(userId);
+    setQuery(''); setResults([]); setOpen(false);
+  }
+
+  return (
+    <div className="relative px-3 py-3 shrink-0 border-b border-ios-border">
+      <div className="flex items-center gap-2 bg-ios-input px-3 py-1.5 rounded-[10px]" onClick={() => setOpen(true)}>
+        <span className="text-ios-text-sec text-[14px]">🔍</span>
+        <input
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          placeholder="Search..."
+          className="flex-1 bg-transparent text-white placeholder-ios-text-sec outline-none text-[15px]"
+        />
+      </div>
+
+      {open && (query.length >= 2) && (
+        <div className="absolute left-3 right-3 top-full mt-2 rounded-[16px] bg-ios-card border border-ios-border z-50 overflow-hidden shadow-2xl">
+          {loading && <div className="px-4 py-3 text-[13px] text-ios-text-sec">Searching...</div>}
+          {!loading && results.length === 0 && <div className="px-4 py-3 text-[13px] text-ios-text-sec">No users found</div>}
+          {results.map((u) => (
+            <button
+              key={u.id} onClick={() => handleSelect(u.id)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left border-b border-ios-border last:border-none hover:bg-ios-hover transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-ios-blue text-white flex items-center justify-center text-[13px] font-semibold shrink-0">
+                {u.username[0].toUpperCase()}
+              </div>
+              <div>
+                <p className="text-[15px] font-medium text-white">{u.username}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+      {open && <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />}
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/layout/MainLayout.tsx">
+import Sidebar from '../chat/Sidebar';
+import ChatArea from '../chat/ChatArea';
+import { ChatProvider } from '../../contexts/ChatContext';
+
+export default function MainLayout() {
+  return (
+    <ChatProvider>
+      <div className="h-screen flex overflow-hidden bg-ios-bg">
+        <Sidebar />
+        <ChatArea />
+      </div>
+    </ChatProvider>
+  );
+}
+</file>
+
+<file path="src/components/settings/SettingsPanel.tsx">
+import { useState, useRef } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
+import { motion } from 'framer-motion';
+
+interface Props { onClose: () => void; }
+
+const API = 'http://localhost:3000';
+
+export default function SettingsPanel({ onClose }: Props) {
+  const { user, login, token } = useAuth();
+  const [tab, setTab] = useState<'profile' | 'password' | 'appearance'>('profile');
+  const [username, setUsername] = useState(user?.username || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [currentPwd, setCurrentPwd] = useState('');
+  const [newPwd, setNewPwd] = useState('');
+  const [wallpaper, setWallpaper] = useState(localStorage.getItem('wallpaper') || '');
+  const [saving, setSaving] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const wallRef = useRef<HTMLInputElement>(null);
+
+  async function saveProfile() {
+    setSaving(true);
+    try {
+      const { data } = await api.patch('/api/users/me', { username, bio });
+      if (token) login(data, token);
+      alert('Saved');
+    } catch (e: any) { alert('Error saving'); }
+    finally { setSaving(false); }
+  }
+
+  async function savePassword() {
+    setSaving(true);
+    try {
+      await api.patch('/api/users/me/password', { currentPassword: currentPwd, newPassword: newPwd });
+      alert('Password changed'); setCurrentPwd(''); setNewPwd('');
+    } catch (e: any) { alert('Error changing password'); }
+    finally { setSaving(false); }
+  }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData(); formData.append('avatar', file);
+    const { data } = await api.post('/api/users/me/avatar', formData);
+    if (token) login({ ...user!, ...data }, token);
+  }
+
+  function handleWallpaperChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result as string;
+      localStorage.setItem('wallpaper', url);
+      setWallpaper(url);
+      window.dispatchEvent(new Event('wallpaper-change'));
+    };
+    reader.readAsDataURL(file);
+  }
+
+  const TABS = [{ id: 'profile', label: 'Profile' }, { id: 'password', label: 'Security' }, { id: 'appearance', label: 'Appearance' }] as const;
+
+  const inputClass = "w-full bg-ios-input text-white rounded-xl px-3 py-2.5 text-[15px] outline-none placeholder-ios-text-sec";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-sm bg-ios-card rounded-[24px] overflow-hidden shadow-2xl border border-ios-border">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-ios-border">
+          <h2 className="font-semibold text-[17px] text-white">Settings</h2>
+          <button onClick={onClose} className="text-ios-blue text-[15px] font-medium">Done</button>
+        </div>
+
+        <div className="p-5">
+          <div className="flex bg-ios-input p-[3px] rounded-[9px] w-full mb-6">
+            {TABS.map((t) => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`flex-1 py-1.5 px-1 text-[13px] font-medium rounded-md transition-all duration-200 ${tab === t.id ? 'bg-[#636366] text-white shadow-sm' : 'text-ios-text-muted hover:text-white'}`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {tab === 'profile' && (
+            <div className="space-y-4">
+               <div className="flex flex-col items-center gap-2 mb-2">
+                <div onClick={() => fileRef.current?.click()} className="w-20 h-20 rounded-full bg-ios-hover flex items-center justify-center text-[24px] font-bold text-white overflow-hidden cursor-pointer">
+                  {user?.avatarUrl ? <img src={`${API}${user.avatarUrl}`} className="w-full h-full object-cover" alt="" /> : user?.username[0].toUpperCase()}
+                </div>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                <button onClick={() => fileRef.current?.click()} className="text-[13px] text-ios-blue">Edit picture</button>
+              </div>
+              <input value={username} onChange={e => setUsername(e.target.value)} className={inputClass} placeholder="Username" />
+              <textarea value={bio} onChange={e => setBio(e.target.value)} className={`${inputClass} resize-none`} rows={3} placeholder="Bio" />
+              <button onClick={saveProfile} disabled={saving} className="w-full bg-ios-blue text-white py-3 rounded-xl font-semibold text-[15px]">{saving ? 'Saving...' : 'Save Changes'}</button>
+            </div>
+          )}
+
+          {tab === 'password' && (
+            <div className="space-y-4">
+              <input type="password" value={currentPwd} onChange={e => setCurrentPwd(e.target.value)} className={inputClass} placeholder="Current Password" />
+              <input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)} className={inputClass} placeholder="New Password" />
+              <button onClick={savePassword} disabled={saving || !currentPwd || !newPwd} className="w-full bg-ios-blue text-white py-3 rounded-xl font-semibold text-[15px]">{saving ? 'Changing...' : 'Change Password'}</button>
+            </div>
+          )}
+
+          {tab === 'appearance' && (
+            <div className="space-y-4">
+              <div onClick={() => wallRef.current?.click()} className="w-full h-32 rounded-xl bg-ios-input flex items-center justify-center cursor-pointer border border-ios-border" style={{ background: wallpaper ? `url(${wallpaper}) center/cover` : '' }}>
+                {!wallpaper && <p className="text-[13px] text-ios-text-sec">Choose Chat Wallpaper</p>}
+              </div>
+              <input ref={wallRef} type="file" accept="image/*" className="hidden" onChange={handleWallpaperChange} />
+              {wallpaper && <button onClick={() => { localStorage.removeItem('wallpaper'); setWallpaper(''); window.dispatchEvent(new Event('wallpaper-change')); }} className="text-[13px] text-ios-red w-full text-center">Remove wallpaper</button>}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/stories/StoriesBar.tsx">
+import { useEffect, useState } from 'react';
+import { useChat } from '../../contexts/ChatContext';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
+import StoryViewer from './StoryViewer';
+import type { Story } from '../../types';
+
+export default function StoriesBar() {
+  const { stories, loadStories } = useChat();
+  const { user } = useAuth();
+  const [viewerData, setViewerData] = useState<{ stories: Story[]; index: number } | null>(null);
+
+  useEffect(() => { loadStories(); }, []);
+
+  async function handleAddStory() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,video/*';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append('file', file);
+      await api.post('/api/stories', formData);
+      loadStories();
+    };
+    input.click();
+  }
+
+  const grouped = stories.reduce((acc, story) => {
+    if (!acc[story.userId]) acc[story.userId] = { user: story.user, stories: [] };
+    acc[story.userId].stories.push(story);
+    return acc;
+  }, {} as Record<string, { user: any; stories: Story[] }>);
+
+  return (
+    <>
+      <div className="flex items-center gap-4 px-4 py-3 border-b border-ios-border bg-ios-bg overflow-x-auto shrink-0 no-scrollbar">
+
+        {/* Buton Add Story */}
+        <button
+          onClick={handleAddStory}
+          className="flex flex-col items-center gap-1.5 shrink-0 bg-transparent border-none cursor-pointer group"
+        >
+          <div className="w-[52px] h-[52px] rounded-full bg-ios-input border border-ios-border flex items-center justify-center text-[22px] text-ios-text-sec group-hover:text-ios-blue transition-colors">
+            +
+          </div>
+          <span className="text-[11px] font-medium text-ios-text-sec">Add</span>
+        </button>
+
+        {Object.values(grouped).map(({ user: storyUser, stories: userStories }) => {
+          const hasUnviewed = userStories.some(
+            (s) => !s.views.find((v) => v.userId === user?.id)
+          );
+
+          return (
+            <button
+              key={storyUser.id}
+              onClick={() => setViewerData({ stories: userStories, index: 0 })}
+              className="flex flex-col items-center gap-1.5 shrink-0 bg-transparent border-none cursor-pointer"
+            >
+              <div className={`w-[52px] h-[52px] rounded-full p-[2.5px] flex items-center justify-center ${
+                hasUnviewed ? 'bg-ios-blue' : 'bg-ios-input'
+              }`}>
+                <div className="w-full h-full rounded-full bg-ios-hover flex items-center justify-center overflow-hidden border-2 border-ios-bg">
+                  {storyUser.avatarUrl ? (
+                    <img
+                      src={storyUser.avatarUrl.startsWith('http') ? storyUser.avatarUrl : `http://localhost:3000${storyUser.avatarUrl}`}
+                      className="w-full h-full object-cover"
+                      alt=""
+                    />
+                  ) : (
+                    <span className="text-[15px] font-semibold text-white">
+                      {storyUser.username[0].toUpperCase()}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <span className="text-[11px] font-medium text-white max-w-[56px] truncate">
+                {storyUser.username}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {viewerData && (
+        <StoryViewer
+          stories={viewerData.stories}
+          initialIndex={viewerData.index}
+          onClose={() => setViewerData(null)}
+        />
+      )}
+    </>
+  );
+}
+</file>
+
+<file path="src/components/stories/StoryViewer.tsx">
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import type { Story } from '../../types';
+import { useChat } from '../../contexts/ChatContext';
+import api from '../../services/api';
+
+interface Props {
+  stories: Story[];
+  initialIndex?: number;
+  onClose: () => void;
+}
+
+const API = 'http://localhost:3000';
+const STORY_EMOJIS = ['❤️', '🔥', '😮', '😂', '👏', '💯'];
+
+function StoryViewerContent({ stories, initialIndex = 0, onClose }: Props) {
+  const { reactToStory } = useChat();
+  const [current, setCurrent] = useState(initialIndex);
+  const [progress, setProgress] = useState(0);
+  const [showReactions, setShowReactions] = useState(false);
+  const [sentReaction, setSentReaction] = useState<string | null>(null);
+
+  const story = stories[current];
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  useEffect(() => {
+    if (!story) return;
+    api.post(`/api/stories/${story.id}/view`).catch(() => {});
+    setProgress(0);
+    setSentReaction(null);
+
+    const interval = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) {
+          clearInterval(interval);
+          if (current < stories.length - 1) setCurrent((c) => c + 1);
+          else onClose();
+          return 100;
+        }
+        return p + 2;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [current]);
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') goNext();
+      if (e.key === 'ArrowLeft') goPrev();
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [current]);
+
+  function goNext() {
+    if (current < stories.length - 1) setCurrent((c) => c + 1);
+    else onClose();
+  }
+
+  function goPrev() {
+    if (current > 0) setCurrent((c) => c - 1);
+  }
+
+  function handleReact(emoji: string) {
+    reactToStory(story.id, emoji);
+    setSentReaction(emoji);
+    setShowReactions(false);
+    setTimeout(() => setSentReaction(null), 2000);
+  }
+
+  if (!story) return null;
+
+  return (
+    <div className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-md flex items-center justify-center" onClick={onClose}>
+      
+      {current > 0 && (
+        <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 w-11 h-11 rounded-full bg-ios-input/50 text-white flex items-center justify-center z-10 hover:bg-ios-hover">
+          ‹
+        </button>
+      )}
+      {current < stories.length - 1 && (
+        <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-4 w-11 h-11 rounded-full bg-ios-input/50 text-white flex items-center justify-center z-10 hover:bg-ios-hover">
+          ›
+        </button>
+      )}
+
+      <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-[400px] max-h-[92vh] aspect-[9/16] rounded-[24px] overflow-hidden bg-black shadow-2xl">
+        
+        {/* Progress Bars */}
+        <div className="absolute top-0 left-0 right-0 z-10 flex gap-1 p-3">
+          {stories.map((_, i) => (
+            <div key={i} className="flex-1 h-1 rounded-full bg-white/20 overflow-hidden">
+              <div className="h-full bg-white" style={{ width: i < current ? '100%' : i === current ? `${progress}%` : '0%' }} />
+            </div>
+          ))}
+        </div>
+
+        {/* Header */}
+        <div className="absolute top-6 left-0 right-0 z-10 flex items-center gap-3 px-4 py-2">
+          <div className="w-9 h-9 rounded-full bg-ios-hover flex items-center justify-center text-[13px] font-semibold text-white overflow-hidden">
+            {story.user.avatarUrl ? (
+              <img src={story.user.avatarUrl.startsWith('http') ? story.user.avatarUrl : `${API}${story.user.avatarUrl}`} className="w-full h-full object-cover" alt="" />
+            ) : story.user.username[0].toUpperCase()}
+          </div>
+          <div className="flex-1">
+            <p className="text-white font-semibold text-[14px] leading-tight">{story.user.username}</p>
+            <p className="text-white/60 text-[11px]">
+              {new Date(story.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center">✕</button>
+        </div>
+
+        {/* Media */}
+        <div className="w-full h-full bg-black flex items-center justify-center">
+          {story.mediaType === 'IMAGE' ? (
+            <img src={`${API}${story.mediaUrl}`} className="w-full h-full object-cover" alt="" />
+          ) : (
+            <video src={`${API}${story.mediaUrl}`} className="w-full h-full object-cover" autoPlay muted playsInline />
+          )}
+        </div>
+
+        {/* Caption */}
+        {story.caption && (
+          <div className="absolute bottom-16 left-0 right-0 px-4 pt-8 pb-4 bg-gradient-to-t from-black/80 to-transparent">
+            <p className="text-white text-[15px]">{story.caption}</p>
+          </div>
+        )}
+
+        {/* Reaction Bar */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-center gap-2 bg-gradient-to-t from-black to-transparent">
+          {sentReaction ? (
+            <div className="text-[32px]">{sentReaction}</div>
+          ) : showReactions ? (
+            <div className="flex gap-2">
+              {STORY_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji} onClick={() => handleReact(emoji)}
+                  className="w-10 h-10 rounded-full bg-white/10 text-[24px] flex items-center justify-center hover:scale-110 transition-transform"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <button onClick={() => setShowReactions(true)} className="px-5 py-2 rounded-full bg-white/10 border border-white/20 text-white text-[14px] font-medium hover:bg-white/20 transition-colors">
+              React
+            </button>
+          )}
+        </div>
+
+        <button className="absolute left-0 top-0 bottom-16 w-1/3 z-0" onClick={(e) => { e.stopPropagation(); goPrev(); }} />
+        <button className="absolute right-0 top-0 bottom-16 w-1/3 z-0" onClick={(e) => { e.stopPropagation(); goNext(); }} />
+      </div>
+    </div>
+  );
+}
+
+export default function StoryViewer(props: Props) {
+  return createPortal(<StoryViewerContent {...props} />, document.body);
+}
+</file>
+
+<file path="src/components/ui/Avatar.tsx">
+import type { User } from '../../types';
+
+interface Props {
+  user: Pick<User, 'username' | 'avatarUrl' | 'isOnline'>;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+}
+
+const sizes = {
+  xs: 'w-7 h-7 text-xs',
+  sm: 'w-8 h-8 text-xs',
+  md: 'w-10 h-10 text-sm',
+  lg: 'w-12 h-12 text-base',
+};
+
+const dotSizes = {
+  xs: 'w-2 h-2',
+  sm: 'w-2 h-2',
+  md: 'w-2.5 h-2.5',
+  lg: 'w-3 h-3',
+};
+
+export default function Avatar({ user, size = 'md' }: Props) {
+  return (
+    <div className="relative flex-shrink-0">
+      {user.avatarUrl ? (
+        <img
+          src={user.avatarUrl}
+          alt={user.username}
+          className={`${sizes[size]} rounded-full object-cover`}
+        />
+      ) : (
+        <div
+          className={`${sizes[size]} rounded-full bg-avatar flex items-center justify-center font-semibold text-white flex-shrink-0`}
+        >
+          {user.username[0].toUpperCase()}
+        </div>
+      )}
+      {user.isOnline && (
+        <span
+          className={`absolute bottom-0 right-0 ${dotSizes[size]} bg-online rounded-full border-2 border-navy-950`}
+        />
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/ui/NotificationBell.tsx">
+import { useState } from 'react';
+import { useChat } from '../../contexts/ChatContext';
+import type { Notification } from '../../types';
+
+export default function NotificationBell() {
+  const { notifications, markNotificationsRead } = useChat();
+  const [open, setOpen] = useState(false);
+
+  const unread = notifications.filter((n) => !n.read).length;
+
+  function toggle() {
+    setOpen((v) => !v);
+    if (!open) markNotificationsRead();
+  }
+
+  function formatTime(date: Date) {
+    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function getIcon(n: Notification) {
+    if (n.type === 'message') return '💬';
+    if (n.type === 'reaction') return n.emoji || '❤️';
+    if (n.type === 'story_reaction') return n.emoji || '🔥';
+    return '🔔';
+  }
+
+  function getText(n: Notification) {
+    if (n.type === 'message') return `${n.senderName}: ${n.content}`;
+    if (n.type === 'reaction') return `${n.senderName} reacted ${n.emoji} to your message`;
+    if (n.type === 'story_reaction') return `${n.senderName} reacted ${n.emoji} to your story`;
+    return '';
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={toggle}
+        className="relative w-8 h-8 rounded-full bg-ios-input text-ios-text-sec hover:text-white flex items-center justify-center transition-colors"
+      >
+        🔔
+        {unread > 0 && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-ios-red rounded-full text-[9px] font-bold text-white flex items-center justify-center border-2 border-ios-bg">
+            {unread > 9 ? '9+' : unread}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-10 left-0 sm:right-0 sm:left-auto w-[300px] bg-ios-card border border-ios-border rounded-2xl overflow-hidden z-50 shadow-2xl">
+            
+            <div className="px-4 py-3 border-b border-ios-border flex justify-between items-center">
+              <p className="text-white font-semibold text-[15px]">Notifications</p>
+              {notifications.length > 0 && (
+                <button
+                  onClick={markNotificationsRead}
+                  className="text-[13px] text-ios-blue font-medium"
+                >
+                  Mark read
+                </button>
+              )}
+            </div>
+
+            <div className="max-h-[360px] overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="p-6 text-center">
+                  <p className="text-2xl mb-2">🔔</p>
+                  <p className="text-[13px] text-ios-text-sec">No notifications yet</p>
+                </div>
+              ) : (
+                notifications.map((n) => (
+                  <div
+                    key={n.id}
+                    className={`flex items-start gap-3 px-4 py-3 border-b border-ios-border last:border-0 ${
+                      n.read ? 'bg-transparent' : 'bg-ios-input/50'
+                    }`}
+                  >
+                    <span className="text-[18px] shrink-0">{getIcon(n)}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[14px] text-white leading-snug mb-0.5 break-words">
+                        {getText(n)}
+                      </p>
+                      <p className="text-[11px] text-ios-text-sec">
+                        {formatTime(n.timestamp)}
+                      </p>
+                    </div>
+                    {!n.read && (
+                      <span className="w-2 h-2 rounded-full bg-ios-blue shrink-0 mt-1.5" />
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="src/contexts/AuthContext.tsx">
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import type { User } from '../types';
+import { connectSocket, disconnectSocket } from '../services/socket';
+
+interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  login: (user: User, token: string) => void;
+  logout: () => void;
+  isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  });
+
+  const [token, setToken] = useState<string | null>(
+    () => localStorage.getItem('token')
+  );
+
+  useEffect(() => {
+    if (token) connectSocket(token);
+    return () => { disconnectSocket(); };
+  }, [token]);
+
+  function login(user: User, token: string) {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    setUser(user);
+    setToken(token);
+    connectSocket(token);
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setToken(null);
+    disconnectSocket();
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!user }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  return ctx;
+}
+</file>
+
+<file path="src/contexts/ChatContext.tsx">
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
+import type { Conversation, Message, Story, Notification } from '../types';
+import { getSocket } from '../services/socket';
+import api from '../services/api';
+import { useAuth } from './AuthContext';
+
+interface ChatContextType {
+  conversations: Conversation[];
+  activeConversation: Conversation | null;
+  messages: Message[];
+  stories: Story[];
+  notifications: Notification[];
+  unreadCounts: Record<string, number>;
+  setActiveConversation: (conv: Conversation) => void;
+  sendMessage: (content: string) => void;
+  sendFile: (file: File) => Promise<void>;
+  toggleReaction: (messageId: string, emoji: string) => void;
+  reactToStory: (storyId: string, emoji: string) => void;
+  startConversation: (targetUserId: string) => Promise<void>;
+  loadStories: () => Promise<void>;
+  loadConversations: () => Promise<void>;
+  deleteMessage: (messageId: string) => Promise<void>;
+  markNotificationsRead: () => void;
+}
+
+const ChatContext = createContext<ChatContextType | null>(null);
+
+function playNotifSound() {
+  try {
+    const ctx = new AudioContext();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(
+      440,
+      ctx.currentTime + 0.1
+    );
+
+    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.001,
+      ctx.currentTime + 0.3
+    );
+
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.3);
+  } catch {
+    // browser poate bloca AudioContext fara interactiune utilizator
+  }
+}
+
+export function ChatProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversation, setActiveConversationState] =
+    useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+
+  const activeConvRef = useRef<Conversation | null>(null);
+
+  async function loadConversations() {
+    try {
+      const { data } = await api.get('/api/users/conversations');
+      setConversations(data);
+    } catch (err) {
+      console.error('Failed to load conversations', err);
+    }
+  }
+
+  useEffect(() => {
+    if (!user) return;
+
+    loadConversations();
+  }, [user]);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    if (!socket) return;
+
+    function handleNewMessage(message: Message) {
+      const isActive =
+        activeConvRef.current?.id === message.conversationId;
+
+      if (isActive) {
+        setMessages((prev) => {
+          if (prev.find((m) => m.id === message.id)) {
+            return prev;
+          }
+
+          return [...prev, message];
+        });
+
+        // Marca mesajul ca vazut daca suntem in conversatie
+        const currentSocket = getSocket();
+
+        currentSocket?.emit('message:read', {
+          conversationId: message.conversationId,
+        });
+      } else {
+        // Incrementeaza unread count
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [message.conversationId]:
+            (prev[message.conversationId] || 0) + 1,
+        }));
+      }
+
+      setConversations((prev) => {
+        const exists = prev.find(
+          (c) => c.id === message.conversationId
+        );
+
+        if (exists) {
+          return [
+            { ...exists, messages: [message] },
+            ...prev.filter((c) => c.id !== message.conversationId),
+          ];
+        }
+
+        loadConversations();
+        return prev;
+      });
+    }
+
+    function handleNotificationMessage(data: any) {
+      playNotifSound();
+
+      const notif: Notification = {
+        id: Date.now().toString(),
+        type: 'message',
+        senderName: data.senderName,
+        content: data.content,
+        conversationId: data.conversationId,
+        timestamp: new Date(),
+        read: false,
+      };
+
+      setNotifications((prev) => [
+        notif,
+        ...prev.slice(0, 19),
+      ]);
+
+      if (Notification.permission === 'granted') {
+        new Notification(`${data.senderName}`, {
+          body: data.content,
+          icon: '/favicon.svg',
+        });
+      }
+    }
+
+    function handleNotificationReaction(data: any) {
+      const notif: Notification = {
+        id: Date.now().toString(),
+        type:
+          data.type === 'story'
+            ? 'story_reaction'
+            : 'reaction',
+        senderName: data.senderName,
+        emoji: data.emoji,
+        timestamp: new Date(),
+        read: false,
+      };
+
+      setNotifications((prev) => [
+        notif,
+        ...prev.slice(0, 19),
+      ]);
+    }
+
+    function handleReactionUpdated({
+      messageId,
+      reactions,
+    }: {
+      messageId: string;
+      reactions: any;
+    }) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? { ...m, reactions }
+            : m
+        )
+      );
+    }
+
+    function handleMessageSeen({
+      conversationId,
+      userId: seenByUserId,
+    }: any) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.conversationId === conversationId
+            ? {
+                ...m,
+                seenBy: [
+                  ...(m.seenBy || []),
+                  seenByUserId,
+                ],
+              }
+            : m
+        )
+      );
+    }
+
+    function handleStoryNew(story: Story) {
+      setStories((prev) => [story, ...prev]);
+    }
+
+    socket.on('message:new', handleNewMessage);
+    socket.on(
+      'notification:message',
+      handleNotificationMessage
+    );
+    socket.on(
+      'notification:reaction',
+      handleNotificationReaction
+    );
+    socket.on(
+      'reaction:updated',
+      handleReactionUpdated
+    );
+    socket.on(
+      'message:seen',
+      handleMessageSeen
+    );
+    socket.on('story:new', handleStoryNew);
+
+    return () => {
+      socket.off(
+        'message:new',
+        handleNewMessage
+      );
+      socket.off(
+        'notification:message',
+        handleNotificationMessage
+      );
+      socket.off(
+        'notification:reaction',
+        handleNotificationReaction
+      );
+      socket.off(
+        'reaction:updated',
+        handleReactionUpdated
+      );
+      socket.off(
+        'message:seen',
+        handleMessageSeen
+      );
+      socket.off(
+        'story:new',
+        handleStoryNew
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  function setActiveConversation(conv: Conversation) {
+    activeConvRef.current = conv;
+    setActiveConversationState(conv);
+    setMessages([]);
+
+    setUnreadCounts((prev) => {
+      const next = { ...prev };
+      delete next[conv.id];
+      return next;
+    });
+
+    const socket = getSocket();
+
+    if (!socket) return;
+
+    socket.emit(
+      'conversation:history',
+      { conversationId: conv.id },
+      (res: any) => {
+        if (res.success) {
+          setMessages(res.messages);
+        }
+      }
+    );
+  }
+
+  function sendMessage(content: string) {
+    if (!activeConvRef.current || !user) return;
+    const convId = activeConvRef.current.id;
+
+    const tempMessage: Message = {
+      id: `temp-${Date.now()}`,
+      conversationId: convId,
+      senderId: user.id,
+      content,
+      messageType: 'TEXT',
+      fileUrl: null, fileName: null, fileSize: null,
+      createdAt: new Date().toISOString(),
+      editedAt: null, deletedAt: null,
+      sender: user,
+      reactions: {},
+    };
+
+    setMessages((prev) => [...prev, tempMessage]);
+
+    const socket = getSocket();
+    socket?.emit('message:send', { conversationId: convId, content });
+  }
+
+  async function sendFile(file: File) {
+    if (!activeConvRef.current) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const { data } = await api.post(
+      '/api/upload',
+      formData
+    );
+
+    const socket = getSocket();
+
+    socket?.emit('message:sendFile', {
+      conversationId: activeConvRef.current.id,
+      ...data,
+    });
+  }
+
+  function toggleReaction(
+    messageId: string,
+    emoji: string
+  ) {
+    const socket = getSocket();
+
+    socket?.emit('reaction:toggle', {
+      messageId,
+      emoji,
+    });
+  }
+
+  function reactToStory(
+    storyId: string,
+    emoji: string
+  ) {
+    const socket = getSocket();
+
+    socket?.emit('story:react', {
+      storyId,
+      emoji,
+    });
+  }
+
+  async function startConversation(
+    targetUserId: string
+  ) {
+    const socket = getSocket();
+
+    if (!socket) return;
+
+    socket.emit(
+      'conversation:start',
+      { targetUserId },
+      (res: any) => {
+        if (!res.success) return;
+
+        setConversations((prev) => {
+          const exists = prev.find(
+            (c) => c.id === res.conversation.id
+          );
+
+          if (exists) {
+            setActiveConversation(exists);
+            return prev;
+          }
+
+          setActiveConversation(
+            res.conversation
+          );
+
+          return [
+            res.conversation,
+            ...prev,
+          ];
+        });
+      }
+    );
+  }
+
+  async function loadStories() {
+    try {
+      const { data } = await api.get(
+        '/api/stories'
+      );
+
+      setStories(data);
+    } catch {
+      // ignore
+    }
+  }
+
+  async function deleteMessage(
+    messageId: string
+  ) {
+    await api.delete(
+      `/api/messages/${messageId}`
+    );
+
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === messageId
+          ? {
+              ...m,
+              deletedAt:
+                new Date().toISOString(),
+              content: null,
+            }
+          : m
+      )
+    );
+  }
+
+  function markNotificationsRead() {
+    setNotifications((prev) =>
+      prev.map((n) => ({
+        ...n,
+        read: true,
+      }))
+    );
+  }
+
+  return (
+    <ChatContext.Provider
+      value={{
+        conversations,
+        activeConversation,
+        messages,
+        stories,
+        notifications,
+        unreadCounts,
+        setActiveConversation,
+        sendMessage,
+        sendFile,
+        toggleReaction,
+        reactToStory,
+        startConversation,
+        loadStories,
+        loadConversations,
+        deleteMessage,
+        markNotificationsRead,
+      }}
+    >
+      {children}
+    </ChatContext.Provider>
+  );
+}
+
+export function useChat() {
+  const ctx = useContext(ChatContext);
+
+  if (!ctx) {
+    throw new Error(
+      'useChat must be used inside ChatProvider'
+    );
+  }
+
+  return ctx;
+}
+</file>
+
+<file path="src/hooks/useSocket.ts">
+import { useEffect } from 'react';
+import { getSocket } from '../services/socket';
+
+export function useSocketEvent<T>(event: string, handler: (data: T) => void) {
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    socket.on(event, handler);
+    return () => { socket.off(event, handler); };
+  }, [event, handler]);
+}
+</file>
+
+<file path="src/services/api.ts">
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost:3000',
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(err);
+  }
+);
+
+export default api;
+</file>
+
+<file path="src/services/socket.ts">
+import { io, Socket } from 'socket.io-client';
+
+let socket: Socket | null = null;
+
+export function connectSocket(token: string): Socket {
+  socket = io('http://localhost:3000', {
+    auth: { token },
+    reconnection: true,
+    reconnectionDelay: 1000,
+  });
+
+  return socket;
+}
+
+export function getSocket(): Socket | null {
+  return socket;
+}
+
+export function disconnectSocket() {
+  socket?.disconnect();
+  socket = null;
+}
+</file>
+
+<file path="src/types/index.ts">
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  isOnline: boolean;
+  lastSeenAt: string;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string | null;
+  messageType: 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'FILE';
+  fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  createdAt: string;
+  editedAt: string | null;
+  deletedAt: string | null;
+  sender: Pick<User, 'id' | 'username' | 'avatarUrl'>;
+  reactions: Record<string, { userId: string; username: string }[]>;
+  seenBy?: string[];
+}
+
+export interface Conversation {
+  id: string;
+  isGroup: boolean;
+  name: string | null;
+  participants: { userId: string; user: User }[];
+  messages?: Message[];
+  unreadCount?: number;
+}
+
+export interface Story {
+  id: string;
+  userId: string;
+  mediaUrl: string;
+  mediaType: 'IMAGE' | 'VIDEO';
+  caption: string | null;
+  createdAt: string;
+  expiresAt: string;
+  user: Pick<User, 'id' | 'username' | 'avatarUrl'>;
+  views: { userId: string }[];
+}
+
+export interface Notification {
+  id: string;
+  type: 'message' | 'reaction' | 'story_reaction';
+  senderName: string;
+  content?: string;
+  emoji?: string;
+  conversationId?: string;
+  timestamp: Date;
+  read: boolean;
+}
+</file>
+
+<file path="src/App.css">
+.counter {
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+  margin-bottom: 24px;
+
+  &:hover {
+    border-color: var(--accent-border);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.hero {
+  position: relative;
+
+  .base,
+  .framework,
+  .vite {
+    inset-inline: 0;
+    margin: 0 auto;
+  }
+
+  .base {
+    width: 170px;
+    position: relative;
+    z-index: 0;
+  }
+
+  .framework,
+  .vite {
+    position: absolute;
+  }
+
+  .framework {
+    z-index: 1;
+    top: 34px;
+    height: 28px;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
+      scale(1.4);
+  }
+
+  .vite {
+    z-index: 0;
+    top: 107px;
+    height: 26px;
+    width: auto;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
+      scale(0.8);
+  }
+}
+
+#center {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  place-content: center;
+  place-items: center;
+  flex-grow: 1;
+
+  @media (max-width: 1024px) {
+    padding: 32px 20px 24px;
+    gap: 18px;
+  }
+}
+
+#next-steps {
+  display: flex;
+  border-top: 1px solid var(--border);
+  text-align: left;
+
+  & > div {
+    flex: 1 1 0;
+    padding: 32px;
+    @media (max-width: 1024px) {
+      padding: 24px 20px;
+    }
+  }
+
+  .icon {
+    margin-bottom: 16px;
+    width: 22px;
+    height: 22px;
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+#docs {
+  border-right: 1px solid var(--border);
+
+  @media (max-width: 1024px) {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+#next-steps ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  margin: 32px 0 0;
+
+  .logo {
+    height: 18px;
+  }
+
+  a {
+    color: var(--text-h);
+    font-size: 16px;
+    border-radius: 6px;
+    background: var(--social-bg);
+    display: flex;
+    padding: 6px 12px;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: box-shadow 0.3s;
+
+    &:hover {
+      box-shadow: var(--shadow);
+    }
+    .button-icon {
+      height: 18px;
+      width: 18px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    li {
+      flex: 1 1 calc(50% - 8px);
+    }
+
+    a {
+      width: 100%;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+  }
+}
+
+#spacer {
+  height: 88px;
+  border-top: 1px solid var(--border);
+  @media (max-width: 1024px) {
+    height: 48px;
+  }
+}
+
+.ticks {
+  position: relative;
+  width: 100%;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -4.5px;
+    border: 5px solid transparent;
+  }
+
+  &::before {
+    left: 0;
+    border-left-color: var(--border);
+  }
+  &::after {
+    right: 0;
+    border-right-color: var(--border);
+  }
+}
+</file>
+
+<file path="src/App.tsx">
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AuthPage from './components/auth/AuthPage';
+import MainLayout from './components/layout/MainLayout';
+
+function AppContent() {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <MainLayout /> : <AuthPage />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+</file>
+
+<file path="src/index.css">
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --input: #e5e5ea;
+  --hover: #d1d1d6;
+  --border: #d1d1d6;
+  --text-main: #000000;
+  --text-sec: #6c6c70;
+  --text-muted: #8e8e93;
+  --bubble-received: #e9e9eb;
+  --bubble-received-text: #000000;
+}
+
+.dark {
+  --bg: #000000;
+  --card: #1c1c1e;
+  --input: #2c2c2e;
+  --hover: #3a3a3c;
+  --border: #38383a;
+  --text-main: #ffffff;
+  --text-sec: #8e8e93;
+  --text-muted: #636366;
+  --bubble-received: #2c2c2e;
+  --bubble-received-text: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-main);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+</file>
+
+<file path="src/main.tsx">
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App.tsx';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+</file>
+
+<file path=".gitignore">
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+</file>
+
+<file path=".oxlintrc.json">
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  }
+}
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="package.json">
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.19.0",
+    "framer-motion": "^13.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2",
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "autoprefixer": "^10.5.4",
+    "oxlint": "^1.75.0",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0"
+  }
+}
+</file>
+
+<file path="postcss.config.js">
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+</file>
+
+<file path="tailwind.config.js">
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        ios: {
+          bg: 'var(--bg)',
+          card: 'var(--card)',
+          input: 'var(--input)',
+          hover: 'var(--hover)',
+          border: 'var(--border)',
+          blue: '#0a84ff',
+          green: '#32d74b',
+          red: '#ff453a',
+          text: {
+            main: 'var(--text-main)',
+            sec: 'var(--text-sec)',
+            muted: 'var(--text-muted)'
+          }
+        }
+      }
+    },
+  },
+  plugins: [],
+};
+</file>
+
+<file path="tsconfig.app.json">
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["vite/client"],
+    "allowArbitraryExtensions": true,
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+</file>
+
+<file path="tsconfig.node.json">
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "module": "nodenext",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts"]
+}
+</file>
+
+<file path="vite.config.ts">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+</file>
+
+</files>

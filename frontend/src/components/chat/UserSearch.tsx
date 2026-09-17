@@ -42,7 +42,7 @@ export default function UserSearch() {
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
           placeholder="Search..."
-          className="flex-1 bg-transparent text-white placeholder-ios-text-sec outline-none text-[15px]"
+          className="flex-1 bg-transparent text-ios-text-main placeholder-ios-text-sec outline-none text-[15px]"
         />
       </div>
 
@@ -59,7 +59,7 @@ export default function UserSearch() {
                 {u.username[0].toUpperCase()}
               </div>
               <div>
-                <p className="text-[15px] font-medium text-white">{u.username}</p>
+                <p className="text-[15px] font-medium text-ios-text-main">{u.username}</p>
               </div>
             </button>
           ))}

@@ -47,7 +47,6 @@ export default function ChatArea() {
 
       {activeConversation ? (
         <>
-          {/* Header blur */}
           <div className="shrink-0 px-5 py-3 border-b border-ios-border bg-ios-bg/70 backdrop-blur-2xl flex items-center gap-3 z-10">
             {otherUser ? (
               <div className="relative shrink-0">
@@ -63,7 +62,8 @@ export default function ChatArea() {
               <div className="w-10 h-10 rounded-full bg-ios-hover flex items-center justify-center text-[18px]">👥</div>
             )}
             <div>
-              <p className="text-[15px] font-semibold text-white leading-tight">
+              {/* Text-ios-text-main in loc de text-white */}
+              <p className="text-[15px] font-semibold text-ios-text-main leading-tight">
                 {activeConversation.name || otherUser?.username || 'Unknown'}
               </p>
               {otherUser?.isOnline ? (
@@ -92,8 +92,6 @@ export default function ChatArea() {
                 <MessageBubble 
                   key={msg.id} 
                   message={msg} 
-                  isLast={idx === messages.length - 1} 
-                  otherUserId={otherUser?.id}
                 />
               ))}
               <div ref={bottomRef} />

@@ -9,7 +9,16 @@ export async function getUserConversationIds(userId: string): Promise<string[]> 
   return participations.map((p) => p.conversationId);
 }
 
-// gaseste o conversatie 1-la-1 intre doi useri, sau o creeaza daca nu exista
+const includeUserData = {
+  participants: {
+    include: {
+      user: {
+        select: { id: true, username: true, avatarUrl: true, isOnline: true, lastSeenAt: true },
+      },
+    },
+  },
+};
+
 export async function findOrCreateDirectConversation(userIdA: string, userIdB: string) {
   const existing = await prisma.conversation.findFirst({
     where: {
@@ -19,7 +28,7 @@ export async function findOrCreateDirectConversation(userIdA: string, userIdB: s
         { participants: { some: { userId: userIdB } } },
       ],
     },
-    include: { participants: true },
+    include: includeUserData,
   });
 
   if (existing) return existing;
@@ -31,7 +40,22 @@ export async function findOrCreateDirectConversation(userIdA: string, userIdB: s
         create: [{ userId: userIdA }, { userId: userIdB }],
       },
     },
-    include: { participants: true },
+    include: includeUserData,
+  });
+}
+
+export async function createGroupConversation(creatorId: string, name: string, participantIds: string[]) {
+  const allIds = [...new Set([creatorId, ...participantIds])];
+  
+  return prisma.conversation.create({
+    data: {
+      isGroup: true,
+      name,
+      participants: {
+        create: allIds.map((id) => ({ userId: id })),
+      },
+    },
+    include: includeUserData,
   });
 }
 

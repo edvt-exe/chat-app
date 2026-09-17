@@ -1,125 +1,149 @@
-import { useState, useRef, useEffect } from 'react';
-import type { Message } from '../../types';
+import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useChat } from '../../contexts/ChatContext';
+import type { Message } from '../../types';
 
-const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏'];
-const API = 'http://localhost:3000';
-
-interface Props {
+interface MessageBubbleProps {
   message: Message;
-  onReply?: (message: Message) => void;
-  isLast?: boolean;
-  otherUserId?: string;
 }
 
-export default function MessageBubble({ message, onReply, isLast, otherUserId }: Props) {
+const API = 'http://localhost:3000';
+
+function formatFileSize(bytes: number | null) {
+  if (!bytes) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+export default function MessageBubble({ message }: MessageBubbleProps) {
   const { user } = useAuth();
-  const { toggleReaction, deleteMessage } = useChat();
-  const [showEmojis, setShowEmojis] = useState(false);
+  const { deleteMessage } = useChat();
   const [showMenu, setShowMenu] = useState(false);
-  const emojiRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
-  const isMine = message.senderId === user?.id;
-  const isSeen = message.seenBy?.includes(otherUserId || '') && isMine;
-  const myCurrentReaction = Object.entries(message.reactions || {}).find(([, users]) =>
-    users.some((u) => u.userId === user?.id)
-  )?.[0];
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) setShowEmojis(false);
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
+  const isOutgoing = message.senderId === user?.id;
+  const isDeleted = Boolean(message.deletedAt);
+  const isTemp = message.id.toString().startsWith('temp-');
+  const isSeen = (message.seenBy || []).some((id) => id !== user?.id);
 
   function formatTime(dateStr: string) {
     return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  function handleEmojiClick(emoji: string) {
-    if (myCurrentReaction && myCurrentReaction !== emoji) toggleReaction(message.id, myCurrentReaction);
-    toggleReaction(message.id, emoji);
-    setShowEmojis(false);
+  function handleTTS(text: string | null) {
+    if (!text) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ro-RO';
+    window.speechSynthesis.speak(utterance);
   }
 
-  function renderContent() {
-    if (message.deletedAt) return <p className="text-[15px] italic opacity-50">Message unsent</p>;
-    if (message.messageType === 'TEXT') return <p className="text-[16px] leading-[1.35] whitespace-pre-wrap m-0 break-words">{message.content}</p>;
-    if (message.messageType === 'IMAGE') return <img src={`${API}${message.fileUrl}`} className="max-w-[220px] rounded-xl cursor-pointer block" onClick={() => window.open(`${API}${message.fileUrl}`, '_blank')} alt="" />;
-    if (message.messageType === 'VIDEO') return <video controls className="max-w-[220px] rounded-xl max-h-[280px]"><source src={`${API}${message.fileUrl}`} /></video>;
-    return (
-      <a href={`${API}${message.fileUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[15px] underline">
-        📎 {message.fileName}
-      </a>
-    );
-  }
+  function renderMediaContent() {
+    if (isDeleted) return <span>🚫 {isOutgoing ? 'You unsent this message' : 'This message was deleted'}</span>;
 
-  const reactionEntries = Object.entries(message.reactions || {}).filter(([, users]) => users.length > 0);
+    const fileUrl = message.fileUrl 
+      ? (message.fileUrl.startsWith('blob:') || message.fileUrl.startsWith('http') 
+          ? message.fileUrl 
+          : `${API}${message.fileUrl}`) 
+      : '';
+
+    switch (message.messageType) {
+      case 'IMAGE':
+        return (
+          <>
+            <img 
+              src={fileUrl} 
+              alt="Sent image" 
+              className="max-w-full max-h-[250px] rounded-[14px] cursor-pointer hover:opacity-90 transition-opacity" 
+              onClick={() => setIsLightboxOpen(true)}
+            />
+            {isLightboxOpen && (
+              <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setIsLightboxOpen(false)}>
+                <button className="absolute top-6 right-6 text-white text-3xl font-light hover:scale-110 transition-transform">✕</button>
+                <img src={fileUrl} alt="Fullscreen" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" />
+              </div>
+            )}
+          </>
+        );
+      case 'VIDEO':
+        return (
+          <video src={fileUrl} controls preload="metadata" className="max-w-full max-h-[250px] rounded-[14px] bg-black/50" />
+        );
+      case 'AUDIO':
+        return (
+          <div className="flex flex-col gap-1 min-w-[200px]">
+            <span className="text-[12px] font-medium opacity-70 mb-1">🎙 Voice Message</span>
+            <audio src={fileUrl} controls preload="metadata" className="h-[36px] w-full" />
+          </div>
+        );
+      case 'FILE':
+        return (
+          <a href={fileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-black/20 p-3 rounded-[14px] no-underline hover:bg-black/30 transition-colors">
+            <div className="w-10 h-10 rounded-full bg-ios-blue text-white flex items-center justify-center text-xl shrink-0">📄</div>
+            <div className="flex flex-col min-w-[120px] max-w-[200px]">
+              <span className="text-[14px] font-semibold truncate text-white">{message.fileName}</span>
+              <span className="text-[12px] opacity-70">{formatFileSize(message.fileSize)}</span>
+            </div>
+          </a>
+        );
+      default:
+        return (
+          <div className="flex items-end gap-2 group/text">
+            <span>{message.content}</span>
+            <button 
+              onClick={() => handleTTS(message.content)} 
+              className="opacity-0 group-hover/text:opacity-100 text-[16px] hover:scale-110 transition-all shrink-0 pb-0.5" 
+              title="Read aloud"
+            >
+              🔊
+            </button>
+          </div>
+        );
+    }
+  }
 
   return (
-    <div className={`flex w-full mb-4 group ${isMine ? 'justify-end' : 'justify-start'}`}>
-      <div className={`relative max-w-[70%] flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-        
-        {/* Bubble */}
-        <div className={`px-4 py-2.5 rounded-[20px] ${
-          isMine 
-            ? 'bg-ios-blue text-white rounded-br-[4px]' 
-            : 'bg-ios-input text-white rounded-bl-[4px]'
-        }`}>
-          {renderContent()}
-        </div>
-
-        {/* Timestamps & Reactions */}
-        <div className={`flex items-center mt-1 gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
-          {!message.deletedAt && (
-             <span className="text-[11px] text-ios-text-sec">{formatTime(message.createdAt)}</span>
-          )}
-          {isMine && isLast && !message.deletedAt && (
-             <span className="text-[11px] text-ios-text-sec">{isSeen ? 'Read' : 'Delivered'}</span>
-          )}
-        </div>
-
-        {reactionEntries.length > 0 && (
-          <div className={`flex flex-wrap gap-1 mt-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
-            {reactionEntries.map(([emoji, users]) => (
-              <button key={emoji} onClick={() => handleEmojiClick(emoji)} className="bg-ios-card border border-ios-border rounded-full px-2 py-0.5 text-[12px] flex items-center gap-1">
-                {emoji} <span className="text-ios-text-sec text-[10px]">{users.length}</span>
-              </button>
-            ))}
+    <div className={`flex flex-col mb-2 group ${isOutgoing ? 'items-end' : 'items-start'}`}>
+      <div className="relative max-w-[75%] flex items-center gap-2">
+        {isOutgoing && !isDeleted && !isTemp && (
+          <div className="relative">
+            <button onClick={() => setShowMenu(!showMenu)} className="opacity-0 group-hover:opacity-100 p-1 text-ios-text-sec hover:text-white transition-opacity text-xs">•••</button>
+            {showMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                <div className="absolute right-0 bottom-6 bg-ios-card border border-ios-border rounded-xl shadow-xl z-20 py-1 min-w-[110px]">
+                  <button
+                    onClick={() => { deleteMessage(message.id); setShowMenu(false); }}
+                    className="w-full text-left px-3 py-1.5 text-[13px] text-ios-red hover:bg-ios-input transition-colors font-medium flex items-center gap-1.5"
+                  >
+                    <span>🗑</span> Unsend
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
-        {/* Hover Actions */}
-        {!message.deletedAt && (
-          <div className={`absolute top-0 ${isMine ? '-left-14' : '-right-14'} opacity-0 group-hover:opacity-100 transition-opacity flex gap-1`}>
-             <div ref={emojiRef} className="relative">
-                <button onClick={() => { setShowEmojis(!showEmojis); setShowMenu(false); }} className="w-6 h-6 rounded-full bg-ios-input text-ios-text-sec flex items-center justify-center text-[12px]">☺</button>
-                {showEmojis && (
-                  <div className="absolute top-8 z-50 bg-ios-card border border-ios-border rounded-2xl p-2 flex gap-1 shadow-xl">
-                    {EMOJIS.map(e => <button key={e} onClick={() => handleEmojiClick(e)} className="text-[18px] hover:scale-125 transition-transform">{e}</button>)}
-                  </div>
-                )}
-             </div>
-             <div ref={menuRef} className="relative">
-                <button onClick={() => { setShowMenu(!showMenu); setShowEmojis(false); }} className="w-6 h-6 rounded-full bg-ios-input text-ios-text-sec flex items-center justify-center text-[12px]">⋯</button>
-                {showMenu && (
-                  <div className="absolute top-8 z-50 bg-ios-card border border-ios-border rounded-xl overflow-hidden shadow-xl min-w-[120px]">
-                    {message.messageType === 'TEXT' && (
-                      <button onClick={() => { navigator.clipboard.writeText(message.content || ''); setShowMenu(false); }} className="w-full px-4 py-2 text-left text-[14px] text-white hover:bg-ios-hover">Copy</button>
-                    )}
-                    {isMine && (
-                      <button onClick={() => { deleteMessage(message.id); setShowMenu(false); }} className="w-full px-4 py-2 text-left text-[14px] text-ios-red hover:bg-ios-hover border-t border-ios-border">Unsend</button>
-                    )}
-                  </div>
-                )}
-             </div>
-          </div>
-        )}
+        <div
+          className={`p-1.5 rounded-[20px] text-[15px] leading-relaxed break-words shadow-sm transition-colors ${
+            isDeleted ? 'bg-ios-input/40 text-ios-text-sec italic border border-ios-border/50 px-4 py-2.5'
+              : message.messageType === 'TEXT'
+              ? (isOutgoing ? 'bg-ios-blue text-white rounded-br-[4px] px-4 py-2.5' : 'bg-ios-input text-white rounded-bl-[4px] px-4 py-2.5')
+              : (isOutgoing ? 'bg-ios-blue text-white rounded-br-[4px]' : 'bg-ios-input text-white rounded-bl-[4px]')
+          }`}
+        >
+          {renderMediaContent()}
 
+          <div className={`flex items-center justify-end gap-1 text-[11px] mt-1 px-2 ${isOutgoing ? 'text-white/80' : 'text-ios-text-sec'}`}>
+            <span>{formatTime(message.createdAt)}</span>
+            {isOutgoing && !isDeleted && (
+              <span className="font-bold text-[12px] leading-none">
+                {isTemp ? '🕒' : isSeen ? <span className="text-[#47bfff] font-bold tracking-tighter">✓✓</span> : <span className="opacity-70 tracking-tighter">✓✓</span>}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

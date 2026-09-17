@@ -4,6 +4,7 @@ import { AuthenticatedSocket } from '../types/socket.types';
 import {
   getUserConversationIds,
   findOrCreateDirectConversation,
+  createGroupConversation,
   isUserInConversation,
 } from '../services/conversation.service';
 import { saveMessage, saveFileMessage, getConversationMessages } from '../services/message.service';
@@ -42,10 +43,28 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
     }
   });
 
-  socket.on('message:send', async ({ conversationId, content }, callback) => {
-    if (!content?.trim()) {
-      return callback?.({ success: false, error: 'Message cannot be empty' });
+  socket.on('conversation:createGroup', async ({ name, participantIds }, callback) => {
+    try {
+      const conversation = await createGroupConversation(userId, name, participantIds);
+      socket.join(conversation.id);
+
+      const targetSockets = await io.fetchSockets();
+      targetSockets.forEach((s) => {
+        const sUserId = (s as unknown as AuthenticatedSocket).userId;
+        if (sUserId && participantIds.includes(sUserId)) {
+          s.join(conversation.id);
+          s.emit('conversation:new', conversation);
+        }
+      });
+
+      callback?.({ success: true, conversation });
+    } catch (error) {
+      callback?.({ success: false, error: 'Could not create group' });
     }
+  });
+
+  socket.on('message:send', async ({ conversationId, content }, callback) => {
+    if (!content?.trim()) return callback?.({ success: false, error: 'Message cannot be empty' });
 
     const allowed = await isUserInConversation(userId, conversationId);
     if (!allowed) return callback?.({ success: false, error: 'Not a participant' });
@@ -54,16 +73,16 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
       const message = await saveMessage(userId, { conversationId, content: content.trim() });
       io.to(conversationId).emit('message:new', message);
 
-      // notificare push catre ceilalti participanti
       const participants = await prisma.conversationParticipant.findMany({
         where: { conversationId, NOT: { userId } },
-        include: { user: { select: { username: true } } },
+        include: { user: { select: { username: true } }, conversation: { select: { isGroup: true, name: true } } },
       });
 
       participants.forEach((p) => {
+        const senderName = p.conversation?.isGroup ? `${username} (${p.conversation.name})` : username;
         io.to(p.userId).emit('notification:message', {
           conversationId,
-          senderName: username,
+          senderName,
           content: content.trim().slice(0, 60),
           type: 'TEXT',
         });
@@ -83,21 +102,18 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
       const message = await saveFileMessage(userId, conversationId, fileUrl, fileName, fileSize, messageType);
       io.to(conversationId).emit('message:new', message);
 
-      const typeLabels: Record<string, string> = {
-        IMAGE: '📷 Photo',
-        VIDEO: '🎥 Video',
-        AUDIO: '🎵 Audio',
-        FILE: '📎 File',
-      };
+      const typeLabels: Record<string, string> = { IMAGE: '📷 Photo', VIDEO: '🎥 Video', AUDIO: '🎵 Audio', FILE: '📎 File' };
 
       const participants = await prisma.conversationParticipant.findMany({
         where: { conversationId, NOT: { userId } },
+        include: { conversation: { select: { isGroup: true, name: true } } }
       });
 
       participants.forEach((p) => {
+        const senderName = p.conversation?.isGroup ? `${username} (${p.conversation.name})` : username;
         io.to(p.userId).emit('notification:message', {
           conversationId,
-          senderName: username,
+          senderName,
           content: typeLabels[messageType] || '📎 File',
           type: messageType,
           fileName,
@@ -111,7 +127,6 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
   });
 
   socket.on('message:read', async ({ conversationId }) => {
-    // marca toate mesajele din conversatie ca vazute de user
     io.to(conversationId).emit('message:seen', { conversationId, userId });
   });
 
@@ -121,8 +136,6 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
 
     const messages = await getConversationMessages(conversationId);
     callback?.({ success: true, messages: messages.reverse() });
-
-    // anunta ca am vazut mesajele
     socket.to(conversationId).emit('message:seen', { conversationId, userId });
   });
 
@@ -143,22 +156,14 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
       const reactions = await toggleReaction(userId, messageId, emoji);
       io.to(message.conversationId).emit('reaction:updated', { messageId, reactions });
 
-      // notificare catre autorul mesajului
       if (message.senderId !== userId) {
         const reactionValues = Object.values(reactions);
-        const userReacted = reactionValues.some((users: any) =>
-          users.some((u: any) => u.userId === userId)
-        );
+        const userReacted = reactionValues.some((users: any) => users.some((u: any) => u.userId === userId));
 
         if (userReacted) {
-          io.to(message.senderId).emit('notification:reaction', {
-            senderName: username,
-            emoji,
-            type: 'message',
-          });
+          io.to(message.senderId).emit('notification:reaction', { senderName: username, emoji, type: 'message' });
         }
       }
-
       callback?.({ success: true, reactions });
     } catch {
       callback?.({ success: false, error: 'Failed to toggle reaction' });
@@ -173,34 +178,19 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
       });
 
       if (!story) return callback?.({ success: false, error: 'Story not found' });
-
       if (story.userId !== userId) {
-        io.to(story.userId).emit('notification:reaction', {
-          senderName: username,
-          emoji,
-          type: 'story',
-        });
+        io.to(story.userId).emit('notification:reaction', { senderName: username, emoji, type: 'story' });
       }
-
       callback?.({ success: true });
     } catch {
       callback?.({ success: false, error: 'Failed to react to story' });
     }
   });
 
-  socket.on('typing:start', ({ conversationId }) => {
-    socket.to(conversationId).emit('typing:start', { userId, username });
-  });
-
-  socket.on('typing:stop', ({ conversationId }) => {
-    socket.to(conversationId).emit('typing:stop', { userId });
-  });
-
+  socket.on('typing:start', ({ conversationId }) => socket.to(conversationId).emit('typing:start', { userId, username }));
+  socket.on('typing:stop', ({ conversationId }) => socket.to(conversationId).emit('typing:stop', { userId }));
   socket.on('disconnect', async () => {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { isOnline: false, lastSeenAt: new Date() },
-    });
+    await prisma.user.update({ where: { id: userId }, data: { isOnline: false, lastSeenAt: new Date() } });
     socket.broadcast.emit('user:offline', { userId });
   });
 

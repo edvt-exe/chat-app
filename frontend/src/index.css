@@ -5,17 +5,6 @@
 @tailwind utilities;
 
 :root {
-  --bg: #f2f2f7;
-  --card: #ffffff;
-  --input: #e5e5ea;
-  --hover: #d1d1d6;
-  --border: #c6c6c8;
-  --text-main: #000000;
-  --text-sec: #8e8e93;
-  --text-muted: #aeaeb2;
-}
-
-.dark {
   --bg: #000000;
   --card: #1c1c1e;
   --input: #2c2c2e;
@@ -23,7 +12,9 @@
   --border: #38383a;
   --text-main: #ffffff;
   --text-sec: #8e8e93;
-  --text-muted: #aeaeb2;
+  --text-muted: #636366;
+  --bubble-received: #2c2c2e;
+  --bubble-received-text: #ffffff;
 }
 
 * {
@@ -33,11 +24,10 @@
 }
 
 body {
-  background: var(--bg);
+  background-color: var(--bg);
   color: var(--text-main);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::-webkit-scrollbar {
@@ -51,8 +41,4 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-sec);
 }

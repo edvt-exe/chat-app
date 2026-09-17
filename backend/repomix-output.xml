@@ -1,0 +1,1633 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+prisma/
+  migrations/
+    20260812092717_init/
+      migration.sql
+    20260821080550_add_2fa_codes/
+      migration.sql
+    20260822112549_add_message_seen/
+      migration.sql
+    migration_lock.toml
+  schema.prisma
+src/
+  controllers/
+    auth.controller.ts
+    story.controller.ts
+    upload.controller.ts
+  db/
+    prisma.ts
+  jobs/
+    cleanupStories.ts
+  middleware/
+    auth.ts
+    upload.ts
+  routes/
+    auth.routes.ts
+    messages.routes.ts
+    story.routes.ts
+    upload.routes.ts
+    users.routes.ts
+  services/
+    auth.service.ts
+    conversation.service.ts
+    email.service.ts
+    message.service.ts
+    reaction.service.ts
+    story.service.ts
+  sockets/
+    authSocket.ts
+    chatSocket.ts
+    index.ts
+  types/
+    auth.types.ts
+    message.types.ts
+    socket.types.ts
+  server.ts
+uploads/
+  .gitkeep
+.gitignore
+package.json
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="prisma/migrations/20260812092717_init/migration.sql">
+-- CreateEnum
+CREATE TYPE "MessageType" AS ENUM ('TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'FILE');
+
+-- CreateEnum
+CREATE TYPE "StoryType" AS ENUM ('IMAGE', 'VIDEO');
+
+-- CreateTable
+CREATE TABLE "users" (
+    "id" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password_hash" TEXT NOT NULL,
+    "avatar_url" TEXT,
+    "bio" TEXT,
+    "is_online" BOOLEAN NOT NULL DEFAULT false,
+    "last_seen_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "conversations" (
+    "id" TEXT NOT NULL,
+    "is_group" BOOLEAN NOT NULL DEFAULT false,
+    "name" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "conversations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "conversation_participants" (
+    "id" TEXT NOT NULL,
+    "conversation_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "joined_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "conversation_participants_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "messages" (
+    "id" TEXT NOT NULL,
+    "conversation_id" TEXT NOT NULL,
+    "sender_id" TEXT NOT NULL,
+    "content" TEXT,
+    "message_type" "MessageType" NOT NULL DEFAULT 'TEXT',
+    "file_url" TEXT,
+    "file_name" TEXT,
+    "file_size" INTEGER,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "edited_at" TIMESTAMP(3),
+    "deleted_at" TIMESTAMP(3),
+
+    CONSTRAINT "messages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "reactions" (
+    "id" TEXT NOT NULL,
+    "message_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "emoji" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "reactions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "stories" (
+    "id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "media_url" TEXT NOT NULL,
+    "media_type" "StoryType" NOT NULL,
+    "caption" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "stories_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "story_views" (
+    "id" TEXT NOT NULL,
+    "story_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "viewed_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "story_views_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "conversation_participants_conversation_id_user_id_key" ON "conversation_participants"("conversation_id", "user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "reactions_message_id_user_id_emoji_key" ON "reactions"("message_id", "user_id", "emoji");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "story_views_story_id_user_id_key" ON "story_views"("story_id", "user_id");
+
+-- AddForeignKey
+ALTER TABLE "conversation_participants" ADD CONSTRAINT "conversation_participants_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "conversation_participants" ADD CONSTRAINT "conversation_participants_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "messages" ADD CONSTRAINT "messages_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "messages" ADD CONSTRAINT "messages_sender_id_fkey" FOREIGN KEY ("sender_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reactions" ADD CONSTRAINT "reactions_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "messages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reactions" ADD CONSTRAINT "reactions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "stories" ADD CONSTRAINT "stories_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "story_views" ADD CONSTRAINT "story_views_story_id_fkey" FOREIGN KEY ("story_id") REFERENCES "stories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "story_views" ADD CONSTRAINT "story_views_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+</file>
+
+<file path="prisma/migrations/20260821080550_add_2fa_codes/migration.sql">
+-- CreateTable
+CREATE TABLE "two_factor_codes" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "used" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "two_factor_codes_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "two_factor_codes" ADD CONSTRAINT "two_factor_codes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+</file>
+
+<file path="prisma/migrations/20260822112549_add_message_seen/migration.sql">
+-- CreateTable
+CREATE TABLE "message_seen" (
+    "id" TEXT NOT NULL,
+    "message_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "seen_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "message_seen_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "message_seen_message_id_user_id_key" ON "message_seen"("message_id", "user_id");
+</file>
+
+<file path="prisma/migrations/migration_lock.toml">
+# Please do not edit this file manually
+# It should be added in your version-control system (e.g., Git)
+provider = "postgresql"
+</file>
+
+<file path="prisma/schema.prisma">
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  avatarUrl    String?  @map("avatar_url")
+  bio          String?
+  isOnline     Boolean  @default(false) @map("is_online")
+  lastSeenAt   DateTime @default(now()) @map("last_seen_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  sentMessages  Message[]                  @relation("SentMessages")
+  conversations ConversationParticipant[]
+  reactions     Reaction[]
+  stories       Story[]
+  storyViews    StoryView[]
+  
+  twoFactorCodes TwoFactorCode[]
+
+  @@map("users")
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  isGroup   Boolean  @default(false) @map("is_group")
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  userId         String   @map("user_id")
+  joinedAt       DateTime @default(now()) @map("joined_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  FILE
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String?
+  messageType    String       @default("TEXT") // TEXT, IMAGE, VIDEO, FILE
+  fileUrl        String?
+  fileName       String?
+  fileSize       Int?
+  createdAt      DateTime     @default(now())
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  seenBy         String[]     @default([])
+
+  isEdited       Boolean      @default(false)
+  isPinned       Boolean      @default(false)
+  replyToId      String?
+  replyTo        Message?     @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies        Message[]    @relation("MessageReplies")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id])
+  reactions      Reaction[]
+}
+
+model Reaction {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  emoji     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@map("reactions")
+}
+
+enum StoryType {
+  IMAGE
+  VIDEO
+}
+
+model Story {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  mediaUrl  String    @map("media_url")
+  mediaType StoryType @map("media_type")
+  caption   String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime  @map("expires_at")
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  views StoryView[]
+
+  @@map("stories")
+}
+
+model StoryView {
+  id       String   @id @default(uuid())
+  storyId  String   @map("story_id")
+  userId   String   @map("user_id")
+  viewedAt DateTime @default(now()) @map("viewed_at")
+
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, userId])
+  @@map("story_views")
+}
+
+model TwoFactorCode {
+  id        String   @id @default(uuid())
+  userId    String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factor_codes")
+}
+
+model MessageSeen {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  seenAt    DateTime @default(now()) @map("seen_at")
+
+  @@unique([messageId, userId])
+  @@map("message_seen")
+}
+</file>
+
+<file path="src/controllers/auth.controller.ts">
+import type { Request, Response } from 'express';
+import * as authService from '../services/auth.service';
+
+export async function registerHandler(req: Request, res: Response) {
+  const { username, email, password } = req.body;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address' });
+  }
+
+  try {
+    const result = await authService.register({ username, email, password });
+    res.status(201).json(result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Registration failed';
+    res.status(409).json({ error: message });
+  }
+}
+
+export async function loginHandler(req: Request, res: Response) {
+  const { identifier, password } = req.body;
+  if (!identifier || !password) {
+    return res.status(400).json({ error: 'Identifier and password are required' });
+  }
+
+  try {
+    const result = await authService.initiateLogin({ identifier, password });
+    res.json(result);
+  } catch {
+    res.status(401).json({ error: 'Invalid credentials' });
+  }
+}
+
+export async function verifyCodeHandler(req: Request, res: Response) {
+  const { userId, code } = req.body;
+  if (!userId || !code) {
+    return res.status(400).json({ error: 'userId and code are required' });
+  }
+
+  try {
+    const result = await authService.verifyLoginCode(userId, code);
+    res.json(result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Verification failed';
+    res.status(401).json({ error: message });
+  }
+}
+</file>
+
+<file path="src/controllers/story.controller.ts">
+import fs from 'fs';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
+import {
+  createStory,
+  getActiveStories,
+  markStoryViewed,
+} from '../services/story.service';
+import { getMessageTypeFromMime } from '../middleware/upload';
+import { io } from '../sockets';
+
+export async function createStoryHandler(req: AuthRequest, res: Response) {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const mediaType = getMessageTypeFromMime(req.file.mimetype);
+  if (mediaType !== 'IMAGE' && mediaType !== 'VIDEO') {
+    return res.status(400).json({ error: 'Stories only support images and videos' });
+  }
+
+  try {
+    const story = await createStory(
+      req.userId!,
+      `/uploads/${req.file.filename}`,
+      mediaType,
+      req.body.caption
+    );
+
+    io.emit('story:new', story);
+    res.status(201).json(story);
+  } catch {
+    res.status(500).json({ error: 'Failed to create story' });
+  }
+}
+
+export async function getStoriesHandler(req: AuthRequest, res: Response) {
+  try {
+    const stories = await getActiveStories();
+    res.json(stories);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch stories' });
+  }
+}
+
+export async function viewStoryHandler(req: AuthRequest, res: Response) {
+  const storyId = Array.isArray(req.params.storyId)
+    ? req.params.storyId[0]
+    : req.params.storyId;
+
+  try {
+    await markStoryViewed(storyId, req.userId!);
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: 'Failed to mark story as viewed' });
+  }
+}
+</file>
+
+<file path="src/controllers/upload.controller.ts">
+import { Request, Response } from 'express';
+import { getMessageTypeFromMime } from '../middleware/upload';
+
+export function uploadHandler(req: Request, res: Response) {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const messageType = getMessageTypeFromMime(req.file.mimetype);
+
+  res.json({
+    fileUrl: `/uploads/${req.file.filename}`,
+    fileName: req.file.originalname,
+    fileSize: req.file.size,
+    messageType,
+  });
+}
+</file>
+
+<file path="src/db/prisma.ts">
+import { PrismaClient } from '@prisma/client';
+
+export const prisma = new PrismaClient();
+</file>
+
+<file path="src/jobs/cleanupStories.ts">
+import { deleteExpiredStories } from '../services/story.service';
+
+export function startCleanupJob() {
+  // ruleaza la fiecare ora
+  setInterval(async () => {
+    const count = await deleteExpiredStories();
+    if (count > 0) console.log(`Cleaned up ${count} expired stories`);
+  }, 60 * 60 * 1000);
+}
+</file>
+
+<file path="src/middleware/auth.ts">
+import { Request, Response, NextFunction } from 'express';
+import { verifyToken } from '../services/auth.service';
+
+export interface AuthRequest extends Request {
+  userId?: string;
+  username?: string;
+}
+
+export function requireAuth(req: AuthRequest, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const payload = verifyToken(token);
+    req.userId = payload.userId;
+    req.username = payload.username;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+</file>
+
+<file path="src/middleware/upload.ts">
+import multer from 'multer';
+import path from 'path';
+import crypto from 'crypto';
+import type { Request } from 'express';
+
+const ALLOWED_TYPES: Record<string, string> = {
+  'image/jpeg': 'IMAGE',
+  'image/png': 'IMAGE',
+  'image/gif': 'IMAGE',
+  'image/webp': 'IMAGE',
+  'video/mp4': 'VIDEO',
+  'video/webm': 'VIDEO',
+  'video/quicktime': 'VIDEO',
+  'video/x-msvideo': 'VIDEO',
+  'audio/mpeg': 'AUDIO',
+  'audio/wav': 'AUDIO',
+  'audio/ogg': 'AUDIO',
+  'audio/webm': 'AUDIO',
+  'application/pdf': 'FILE',
+  'application/msword': 'FILE',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'FILE',
+  'text/plain': 'FILE',
+  'application/zip': 'FILE',
+};
+
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB pentru video
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../../uploads'));
+  },
+  filename: (req, file, cb) => {
+    const unique = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${path.extname(file.originalname)}`;
+    cb(null, unique);
+  },
+});
+
+function fileFilter(req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) {
+  if (ALLOWED_TYPES[file.mimetype]) cb(null, true);
+  else cb(new Error(`File type ${file.mimetype} is not allowed`));
+}
+
+export const upload = multer({ storage, fileFilter, limits: { fileSize: MAX_FILE_SIZE } });
+
+export function getMessageTypeFromMime(mimetype: string): string {
+  return ALLOWED_TYPES[mimetype] || 'FILE';
+}
+</file>
+
+<file path="src/routes/auth.routes.ts">
+import { Router } from 'express';
+import { registerHandler, loginHandler, verifyCodeHandler } from '../controllers/auth.controller';
+
+const router = Router();
+
+router.post('/register', registerHandler);
+router.post('/login', loginHandler);
+router.post('/verify-code', verifyCodeHandler);
+
+export default router;
+</file>
+
+<file path="src/routes/messages.routes.ts">
+import { Router } from 'express';
+import { requireAuth, AuthRequest } from '../middleware/auth';
+import { prisma } from '../db/prisma';
+import type { Response } from 'express';
+
+const router = Router();
+
+router.delete('/:messageId', requireAuth, async (req: AuthRequest, res: Response) => {
+  const messageId = Array.isArray(req.params.messageId)
+    ? req.params.messageId[0]
+    : req.params.messageId;
+
+  const message = await prisma.message.findUnique({ where: { id: messageId } });
+  if (!message) return res.status(404).json({ error: 'Message not found' });
+  if (message.senderId !== req.userId) return res.status(403).json({ error: 'Not your message' });
+
+  const updated = await prisma.message.update({
+    where: { id: messageId },
+    data: { deletedAt: new Date(), content: null },
+  });
+
+  res.json(updated);
+});
+
+export default router;
+</file>
+
+<file path="src/routes/story.routes.ts">
+import { Router } from 'express';
+import { upload } from '../middleware/upload';
+import { requireAuth } from '../middleware/auth';
+import {
+  createStoryHandler,
+  getStoriesHandler,
+  viewStoryHandler,
+} from '../controllers/story.controller';
+
+const router = Router();
+
+router.post('/', requireAuth, upload.single('file'), createStoryHandler);
+router.get('/', requireAuth, getStoriesHandler);
+router.post('/:storyId/view', requireAuth, viewStoryHandler);
+
+export default router;
+</file>
+
+<file path="src/routes/upload.routes.ts">
+import { Router } from 'express';
+import { upload } from '../middleware/upload';
+import { uploadHandler } from '../controllers/upload.controller';
+import { requireAuth } from '../middleware/auth';
+
+const router = Router();
+
+router.post('/', requireAuth, upload.single('file'), uploadHandler);
+
+export default router;
+</file>
+
+<file path="src/routes/users.routes.ts">
+import { Router } from 'express';
+import { requireAuth, AuthRequest } from '../middleware/auth';
+import { prisma } from '../db/prisma';
+import type { Response } from 'express';
+import bcrypt from 'bcrypt';
+import multer from 'multer';
+import path from 'path';
+import crypto from 'crypto';
+
+const router = Router();
+
+router.get('/search', requireAuth, async (req: AuthRequest, res: Response) => {
+  const query = req.query.q as string;
+  if (!query || query.trim().length < 2) {
+    return res.status(400).json({ error: 'Query must be at least 2 characters' });
+  }
+  const users = await prisma.user.findMany({
+    where: {
+      username: { contains: query, mode: 'insensitive' },
+      NOT: { id: req.userId },
+    },
+    select: { id: true, username: true, avatarUrl: true, isOnline: true },
+    take: 10,
+  });
+  res.json(users);
+});
+
+router.get('/conversations', requireAuth, async (req: AuthRequest, res: Response) => {
+  const conversations = await prisma.conversation.findMany({
+    where: {
+      participants: { some: { userId: req.userId } },
+    },
+    include: {
+      participants: {
+        include: {
+          user: {
+            select: { id: true, username: true, avatarUrl: true, isOnline: true, lastSeenAt: true },
+          },
+        },
+      },
+      messages: {
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        include: {
+          sender: { select: { id: true, username: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(conversations);
+});
+
+router.get('/me', requireAuth, async (req: AuthRequest, res: Response) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.userId },
+    select: { id: true, username: true, email: true, avatarUrl: true, bio: true, isOnline: true, createdAt: true },
+  });
+  res.json(user);
+});
+
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, path.join(__dirname, '../../uploads')),
+  filename: (req, file, cb) => {
+    const name = `avatar-${Date.now()}-${crypto.randomBytes(6).toString('hex')}${path.extname(file.originalname)}`;
+    cb(null, name);
+  },
+});
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Only images allowed'));
+  },
+});
+
+router.patch('/me', requireAuth, async (req: AuthRequest, res: Response) => {
+  const { bio, username } = req.body;
+
+  if (username) {
+    const existing = await prisma.user.findFirst({
+      where: { username, NOT: { id: req.userId } },
+    });
+    if (existing) return res.status(409).json({ error: 'Username already taken' });
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: req.userId },
+    data: { ...(bio !== undefined && { bio }), ...(username && { username }) },
+    select: { id: true, username: true, email: true, avatarUrl: true, bio: true },
+  });
+  res.json(updated);
+});
+
+router.post('/me/avatar', requireAuth, avatarUpload.single('avatar'), async (req: AuthRequest, res: Response) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+  const updated = await prisma.user.update({
+    where: { id: req.userId },
+    data: { avatarUrl: `/uploads/${req.file.filename}` },
+    select: { id: true, username: true, avatarUrl: true },
+  });
+  res.json(updated);
+});
+
+router.patch('/me/password', requireAuth, async (req: AuthRequest, res: Response) => {
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await prisma.user.findUnique({ where: { id: req.userId } });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!valid) return res.status(401).json({ error: 'Current password is incorrect' });
+
+  const hash = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({ where: { id: req.userId }, data: { passwordHash: hash } });
+  res.json({ success: true });
+});
+
+export default router;
+</file>
+
+<file path="src/services/auth.service.ts">
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import { prisma } from '../db/prisma';
+import { sendVerificationCode } from './email.service';
+import type { RegisterInput, LoginInput, AuthPayload } from '../types/auth.types';
+
+const SALT_ROUNDS = 10;
+const JWT_EXPIRES_IN = '7d';
+
+export async function register(input: RegisterInput) {
+  const { username, email, password } = input;
+
+  const existing = await prisma.user.findFirst({
+    where: { OR: [{ username }, { email }] },
+  });
+
+  if (existing) throw new Error('Username or email already taken');
+
+  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
+  const user = await prisma.user.create({
+    data: { username, email, passwordHash },
+  });
+
+  const token = signToken({ userId: user.id, username: user.username });
+  return { token, user: { id: user.id, username: user.username, email: user.email } };
+}
+
+export async function initiateLogin(input: LoginInput) {
+  const { identifier, password } = input;
+
+  const user = await prisma.user.findFirst({
+    where: { OR: [{ username: identifier }, { email: identifier }] },
+  });
+
+  if (!user) throw new Error('Invalid credentials');
+
+  const isValid = await bcrypt.compare(password, user.passwordHash);
+  if (!isValid) throw new Error('Invalid credentials');
+
+  // genera un cod de 6 cifre
+  const code = crypto.randomInt(100000, 999999).toString();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  await prisma.twoFactorCode.deleteMany({ where: { userId: user.id } });
+  await prisma.twoFactorCode.create({
+    data: { userId: user.id, code, expiresAt },
+  });
+
+  await sendVerificationCode(user.email, code);
+
+  return { userId: user.id, message: 'Code sent to your email' };
+}
+
+export async function verifyLoginCode(userId: string, code: string) {
+  const record = await prisma.twoFactorCode.findFirst({
+    where: { userId, code, used: false, expiresAt: { gt: new Date() } },
+  });
+
+  if (!record) throw new Error('Invalid or expired code');
+
+  await prisma.twoFactorCode.update({ where: { id: record.id }, data: { used: true } });
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new Error('User not found');
+
+  const token = signToken({ userId: user.id, username: user.username });
+  return { token, user: { id: user.id, username: user.username, email: user.email } };
+}
+
+function signToken(payload: AuthPayload): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET not set');
+  return jwt.sign(payload, secret, { expiresIn: JWT_EXPIRES_IN });
+}
+
+export function verifyToken(token: string): AuthPayload {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET not set');
+  return jwt.verify(token, secret) as AuthPayload;
+}
+</file>
+
+<file path="src/services/conversation.service.ts">
+import { prisma } from '../db/prisma';
+
+export async function getUserConversationIds(userId: string): Promise<string[]> {
+  const participations = await prisma.conversationParticipant.findMany({
+    where: { userId },
+    select: { conversationId: true },
+  });
+
+  return participations.map((p) => p.conversationId);
+}
+
+// gaseste o conversatie 1-la-1 intre doi useri, sau o creeaza daca nu exista
+export async function findOrCreateDirectConversation(userIdA: string, userIdB: string) {
+  const existing = await prisma.conversation.findFirst({
+    where: {
+      isGroup: false,
+      AND: [
+        { participants: { some: { userId: userIdA } } },
+        { participants: { some: { userId: userIdB } } },
+      ],
+    },
+    include: { participants: true },
+  });
+
+  if (existing) return existing;
+
+  return prisma.conversation.create({
+    data: {
+      isGroup: false,
+      participants: {
+        create: [{ userId: userIdA }, { userId: userIdB }],
+      },
+    },
+    include: { participants: true },
+  });
+}
+
+export async function isUserInConversation(userId: string, conversationId: string): Promise<boolean> {
+  const participant = await prisma.conversationParticipant.findUnique({
+    where: { conversationId_userId: { conversationId, userId } },
+  });
+
+  return !!participant;
+}
+</file>
+
+<file path="src/services/email.service.ts">
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT),
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+export async function sendVerificationCode(email: string, code: string) {
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: 'NexusChat — your login code',
+    html: `
+      <div style="font-family: Inter, sans-serif; max-width: 400px; margin: 0 auto; background: #060b14; color: #e8f4ff; border-radius: 16px; padding: 32px; border: 1px solid rgba(0,200,255,0.15);">
+        <h1 style="color: #00c8ff; font-size: 24px; margin-bottom: 8px;">NexusChat</h1>
+        <p style="color: rgba(255,255,255,0.6); margin-bottom: 24px;">Your verification code</p>
+        <div style="background: rgba(0,200,255,0.08); border: 1px solid rgba(0,200,255,0.2); border-radius: 12px; padding: 24px; text-align: center;">
+          <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #00c8ff;">${code}</span>
+        </div>
+        <p style="color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 24px;">
+          This code expires in 10 minutes. If you didn't request this, ignore this email.
+        </p>
+      </div>
+    `,
+  });
+}
+</file>
+
+<file path="src/services/message.service.ts">
+import { prisma } from '../db/prisma';
+import type { SendMessageInput } from '../types/message.types';
+
+function groupReactions(reactions: any[]) {
+  return reactions.reduce((acc, r) => {
+    if (!acc[r.emoji]) acc[r.emoji] = [];
+    acc[r.emoji].push({ userId: r.userId, username: r.user?.username || '' });
+    return acc;
+  }, {} as Record<string, { userId: string; username: string }[]>);
+}
+
+export async function saveMessage(senderId: string, input: SendMessageInput) {
+  const { conversationId, content } = input;
+
+  const msg = await prisma.message.create({
+    data: { conversationId, senderId, content, messageType: 'TEXT' },
+    include: {
+      sender: { select: { id: true, username: true, avatarUrl: true } },
+      reactions: { include: { user: { select: { id: true, username: true } } } },
+    },
+  });
+
+  return { ...msg, reactions: groupReactions(msg.reactions) };
+}
+
+export async function saveFileMessage(
+  senderId: string,
+  conversationId: string,
+  fileUrl: string,
+  fileName: string,
+  fileSize: number,
+  messageType: string
+) {
+  const msg = await prisma.message.create({
+    data: {
+      conversationId,
+      senderId,
+      messageType: messageType as any,
+      fileUrl,
+      fileName,
+      fileSize,
+    },
+    include: {
+      sender: { select: { id: true, username: true, avatarUrl: true } },
+      reactions: { include: { user: { select: { id: true, username: true } } } },
+    },
+  });
+
+  return { ...msg, reactions: groupReactions(msg.reactions) };
+}
+
+export async function getConversationMessages(conversationId: string, limit = 50) {
+  const msgs = await prisma.message.findMany({
+    where: { conversationId, deletedAt: null },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    include: {
+      sender: { select: { id: true, username: true, avatarUrl: true } },
+      reactions: { include: { user: { select: { id: true, username: true } } } },
+    },
+  });
+
+  return msgs.map((m) => ({ ...m, reactions: groupReactions(m.reactions) }));
+}
+</file>
+
+<file path="src/services/reaction.service.ts">
+import { prisma } from '../db/prisma';
+
+function groupReactions(reactions: any[]) {
+  return reactions.reduce((acc, r) => {
+    if (!acc[r.emoji]) acc[r.emoji] = [];
+    acc[r.emoji].push({ userId: r.userId, username: r.user?.username || '' });
+    return acc;
+  }, {} as Record<string, { userId: string; username: string }[]>);
+}
+
+export async function toggleReaction(userId: string, messageId: string, emoji: string) {
+  const existing = await prisma.reaction.findUnique({
+    where: { messageId_userId_emoji: { messageId, userId, emoji } },
+  });
+
+  if (existing) {
+    await prisma.reaction.delete({
+      where: { messageId_userId_emoji: { messageId, userId, emoji } },
+    });
+  } else {
+    await prisma.reaction.create({
+      data: { messageId, userId, emoji },
+    });
+  }
+
+  const reactions = await prisma.reaction.findMany({
+    where: { messageId },
+    include: { user: { select: { id: true, username: true } } },
+  });
+
+  return groupReactions(reactions);
+}
+</file>
+
+<file path="src/services/story.service.ts">
+import fs from 'fs';
+import path from 'path';
+import { prisma } from '../db/prisma';
+
+export async function createStory(userId: string, mediaUrl: string, mediaType: string, caption?: string) {
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  return prisma.story.create({
+    data: {
+      userId,
+      mediaUrl,
+      mediaType: mediaType as any,
+      caption,
+      expiresAt,
+    },
+    include: {
+      user: { select: { id: true, username: true, avatarUrl: true } },
+    },
+  });
+}
+
+export async function getActiveStories() {
+  return prisma.story.findMany({
+    where: { expiresAt: { gt: new Date() } },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      user: { select: { id: true, username: true, avatarUrl: true } },
+      views: { select: { userId: true } },
+    },
+  });
+}
+
+export async function markStoryViewed(storyId: string, userId: string) {
+  await prisma.storyView.upsert({
+    where: { storyId_userId: { storyId, userId } },
+    create: { storyId, userId },
+    update: {},
+  });
+}
+
+export async function deleteExpiredStories() {
+  const expired = await prisma.story.findMany({
+    where: { expiresAt: { lt: new Date() } },
+    select: { id: true, mediaUrl: true },
+  });
+
+  for (const story of expired) {
+    const filePath = path.join(__dirname, '../../', story.mediaUrl);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  }
+
+  await prisma.story.deleteMany({
+    where: { expiresAt: { lt: new Date() } },
+  });
+
+  return expired.length;
+}
+</file>
+
+<file path="src/sockets/authSocket.ts">
+import { Socket } from 'socket.io';
+import { verifyToken } from '../services/auth.service';
+import { AuthenticatedSocket } from '../types/socket.types';
+
+export function socketAuthMiddleware(
+  socket: Socket,
+  next: (err?: Error) => void
+) {
+  const token = socket.handshake.auth?.token;
+
+  if (!token) {
+    return next(new Error('Authentication token missing'));
+  }
+
+  try {
+    const payload = verifyToken(token);
+    (socket as AuthenticatedSocket).userId = payload.userId;
+    (socket as AuthenticatedSocket).username = payload.username;
+    next();
+  } catch {
+    next(new Error('Invalid or expired token'));
+  }
+}
+</file>
+
+<file path="src/sockets/chatSocket.ts">
+import { Server } from 'socket.io';
+import { prisma } from '../db/prisma';
+import { AuthenticatedSocket } from '../types/socket.types';
+import {
+  getUserConversationIds,
+  findOrCreateDirectConversation,
+  isUserInConversation,
+} from '../services/conversation.service';
+import { saveMessage, saveFileMessage, getConversationMessages } from '../services/message.service';
+import { toggleReaction } from '../services/reaction.service';
+
+export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
+  const userId = socket.userId!;
+  const username = socket.username!;
+
+  async function handleConnect() {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isOnline: true, lastSeenAt: new Date() },
+    });
+
+    const conversationIds = await getUserConversationIds(userId);
+    conversationIds.forEach((id) => socket.join(id));
+    socket.broadcast.emit('user:online', { userId });
+  }
+
+  socket.on('conversation:start', async ({ targetUserId }, callback) => {
+    try {
+      const conversation = await findOrCreateDirectConversation(userId, targetUserId);
+      socket.join(conversation.id);
+
+      const targetSockets = await io.fetchSockets();
+      targetSockets.forEach((s) => {
+        if ((s as unknown as AuthenticatedSocket).userId === targetUserId) {
+          s.join(conversation.id);
+        }
+      });
+
+      callback({ success: true, conversation });
+    } catch {
+      callback({ success: false, error: 'Could not start conversation' });
+    }
+  });
+
+  socket.on('message:send', async ({ conversationId, content }, callback) => {
+    if (!content?.trim()) {
+      return callback?.({ success: false, error: 'Message cannot be empty' });
+    }
+
+    const allowed = await isUserInConversation(userId, conversationId);
+    if (!allowed) return callback?.({ success: false, error: 'Not a participant' });
+
+    try {
+      const message = await saveMessage(userId, { conversationId, content: content.trim() });
+      io.to(conversationId).emit('message:new', message);
+
+      // notificare push catre ceilalti participanti
+      const participants = await prisma.conversationParticipant.findMany({
+        where: { conversationId, NOT: { userId } },
+        include: { user: { select: { username: true } } },
+      });
+
+      participants.forEach((p) => {
+        io.to(p.userId).emit('notification:message', {
+          conversationId,
+          senderName: username,
+          content: content.trim().slice(0, 60),
+          type: 'TEXT',
+        });
+      });
+
+      callback?.({ success: true, message });
+    } catch {
+      callback?.({ success: false, error: 'Failed to send message' });
+    }
+  });
+
+  socket.on('message:sendFile', async ({ conversationId, fileUrl, fileName, fileSize, messageType }, callback) => {
+    const allowed = await isUserInConversation(userId, conversationId);
+    if (!allowed) return callback?.({ success: false, error: 'Not a participant' });
+
+    try {
+      const message = await saveFileMessage(userId, conversationId, fileUrl, fileName, fileSize, messageType);
+      io.to(conversationId).emit('message:new', message);
+
+      const typeLabels: Record<string, string> = {
+        IMAGE: '📷 Photo',
+        VIDEO: '🎥 Video',
+        AUDIO: '🎵 Audio',
+        FILE: '📎 File',
+      };
+
+      const participants = await prisma.conversationParticipant.findMany({
+        where: { conversationId, NOT: { userId } },
+      });
+
+      participants.forEach((p) => {
+        io.to(p.userId).emit('notification:message', {
+          conversationId,
+          senderName: username,
+          content: typeLabels[messageType] || '📎 File',
+          type: messageType,
+          fileName,
+        });
+      });
+
+      callback?.({ success: true, message });
+    } catch {
+      callback?.({ success: false, error: 'Failed to send file message' });
+    }
+  });
+
+  socket.on('message:read', async ({ conversationId }) => {
+    // marca toate mesajele din conversatie ca vazute de user
+    io.to(conversationId).emit('message:seen', { conversationId, userId });
+  });
+
+  socket.on('conversation:history', async ({ conversationId }, callback) => {
+    const allowed = await isUserInConversation(userId, conversationId);
+    if (!allowed) return callback?.({ success: false, error: 'Not a participant' });
+
+    const messages = await getConversationMessages(conversationId);
+    callback?.({ success: true, messages: messages.reverse() });
+
+    // anunta ca am vazut mesajele
+    socket.to(conversationId).emit('message:seen', { conversationId, userId });
+  });
+
+  socket.on('reaction:toggle', async ({ messageId, emoji }, callback) => {
+    if (!emoji || !messageId) return callback?.({ success: false, error: 'Missing params' });
+
+    try {
+      const message = await prisma.message.findUnique({
+        where: { id: messageId },
+        select: { conversationId: true, senderId: true },
+      });
+
+      if (!message) return callback?.({ success: false, error: 'Message not found' });
+
+      const allowed = await isUserInConversation(userId, message.conversationId);
+      if (!allowed) return callback?.({ success: false, error: 'Not a participant' });
+
+      const reactions = await toggleReaction(userId, messageId, emoji);
+      io.to(message.conversationId).emit('reaction:updated', { messageId, reactions });
+
+      // notificare catre autorul mesajului
+      if (message.senderId !== userId) {
+        const reactionValues = Object.values(reactions);
+        const userReacted = reactionValues.some((users: any) =>
+          users.some((u: any) => u.userId === userId)
+        );
+
+        if (userReacted) {
+          io.to(message.senderId).emit('notification:reaction', {
+            senderName: username,
+            emoji,
+            type: 'message',
+          });
+        }
+      }
+
+      callback?.({ success: true, reactions });
+    } catch {
+      callback?.({ success: false, error: 'Failed to toggle reaction' });
+    }
+  });
+
+  socket.on('story:react', async ({ storyId, emoji }, callback) => {
+    try {
+      const story = await prisma.story.findUnique({
+        where: { id: storyId },
+        select: { userId: true, user: { select: { username: true } } },
+      });
+
+      if (!story) return callback?.({ success: false, error: 'Story not found' });
+
+      if (story.userId !== userId) {
+        io.to(story.userId).emit('notification:reaction', {
+          senderName: username,
+          emoji,
+          type: 'story',
+        });
+      }
+
+      callback?.({ success: true });
+    } catch {
+      callback?.({ success: false, error: 'Failed to react to story' });
+    }
+  });
+
+  socket.on('typing:start', ({ conversationId }) => {
+    socket.to(conversationId).emit('typing:start', { userId, username });
+  });
+
+  socket.on('typing:stop', ({ conversationId }) => {
+    socket.to(conversationId).emit('typing:stop', { userId });
+  });
+
+  socket.on('disconnect', async () => {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isOnline: false, lastSeenAt: new Date() },
+    });
+    socket.broadcast.emit('user:offline', { userId });
+  });
+
+  handleConnect();
+}
+</file>
+
+<file path="src/sockets/index.ts">
+import { Server as HttpServer } from 'http';
+import { Server } from 'socket.io';
+import { socketAuthMiddleware } from './authSocket';
+import { registerChatHandlers } from './chatSocket';
+import { AuthenticatedSocket } from '../types/socket.types';
+
+export let io: Server;
+
+export function initSocketServer(httpServer: HttpServer) {
+  io = new Server(httpServer, {
+    cors: {
+      origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+      credentials: true,
+    },
+  });
+
+  io.use(socketAuthMiddleware);
+
+  io.on('connection', (socket) => {
+    const authSocket = socket as AuthenticatedSocket;
+    console.log(`User connected: ${authSocket.username}`);
+    registerChatHandlers(io, authSocket);
+  });
+
+  return io;
+}
+</file>
+
+<file path="src/types/auth.types.ts">
+export interface RegisterInput {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginInput {
+  identifier: string;
+  password: string;
+}
+
+export interface AuthPayload {
+  userId: string;
+  username: string;
+}
+</file>
+
+<file path="src/types/message.types.ts">
+export interface SendMessageInput {
+  conversationId: string;
+  content: string;
+}
+
+export interface StartConversationInput {
+  targetUserId: string;
+}
+</file>
+
+<file path="src/types/socket.types.ts">
+import { Socket } from 'socket.io';
+
+export interface AuthenticatedSocket extends Socket {
+  userId?: string;
+  username?: string;
+}
+</file>
+
+<file path="src/server.ts">
+import express from 'express';
+import { createServer } from 'http';
+import path from 'path';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
+import authRoutes from './routes/auth.routes';
+import uploadRoutes from './routes/upload.routes';
+import storyRoutes from './routes/story.routes';
+import { initSocketServer } from './sockets';
+import { startCleanupJob } from './jobs/cleanupStories';
+import usersRoutes from './routes/users.routes';
+import messagesRoutes from './routes/messages.routes';
+
+dotenv.config();
+
+const app = express();
+const httpServer = createServer(app);
+const PORT = process.env.PORT || 3000;
+
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(cors());
+app.use(express.json());
+
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+});
+app.use('/api', limiter);
+
+app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/stories', storyRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/messages', messagesRoutes);
+
+initSocketServer(httpServer);
+startCleanupJob();
+
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+</file>
+
+<file path="uploads/.gitkeep">
+
+</file>
+
+<file path=".gitignore">
+node_modules
+# Keep environment variables out of version control
+.env
+
+/src/generated/prisma
+
+/src/generated/prisma
+</file>
+
+<file path="package.json">
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.2.0",
+    "nodemailer": "^9.0.5",
+    "prisma": "^6.19.3",
+    "repomix": "^1.18.0",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.2.0",
+    "@types/node": "^26.2.0",
+    "@types/nodemailer": "^8.0.1",
+    "socket.io-client": "^4.8.3",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "bcrypt@6.0.0": true,
+    "esbuild@0.28.2": true,
+    "prisma@6.19.3": true
+  }
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
+</file>
+
+</files>
