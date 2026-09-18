@@ -1,5 +1,4 @@
 import { prisma } from '../db/prisma';
-import type { SendMessageInput } from '../types/message.types';
 
 function groupReactions(reactions: any[]) {
   return reactions.reduce((acc, r) => {
@@ -9,41 +8,29 @@ function groupReactions(reactions: any[]) {
   }, {} as Record<string, { userId: string; username: string }[]>);
 }
 
-export async function saveMessage(senderId: string, input: SendMessageInput) {
-  const { conversationId, content } = input;
+const messageInclude = {
+  sender: { select: { id: true, username: true, avatarUrl: true } },
+  reactions: { include: { user: { select: { id: true, username: true } } } },
+  replyTo: { select: { id: true, content: true, messageType: true, sender: { select: { username: true } } } }
+};
+
+export async function saveMessage(senderId: string, input: { conversationId: string; content: string; replyToId?: string }) {
+  const { conversationId, content, replyToId } = input;
 
   const msg = await prisma.message.create({
-    data: { conversationId, senderId, content, messageType: 'TEXT' },
-    include: {
-      sender: { select: { id: true, username: true, avatarUrl: true } },
-      reactions: { include: { user: { select: { id: true, username: true } } } },
-    },
+    data: { conversationId, senderId, content, messageType: 'TEXT', replyToId },
+    include: messageInclude,
   });
 
   return { ...msg, reactions: groupReactions(msg.reactions) };
 }
 
 export async function saveFileMessage(
-  senderId: string,
-  conversationId: string,
-  fileUrl: string,
-  fileName: string,
-  fileSize: number,
-  messageType: string
+  senderId: string, conversationId: string, fileUrl: string, fileName: string, fileSize: number, messageType: string
 ) {
   const msg = await prisma.message.create({
-    data: {
-      conversationId,
-      senderId,
-      messageType: messageType as any,
-      fileUrl,
-      fileName,
-      fileSize,
-    },
-    include: {
-      sender: { select: { id: true, username: true, avatarUrl: true } },
-      reactions: { include: { user: { select: { id: true, username: true } } } },
-    },
+    data: { conversationId, senderId, messageType: messageType as any, fileUrl, fileName, fileSize },
+    include: messageInclude,
   });
 
   return { ...msg, reactions: groupReactions(msg.reactions) };
@@ -54,10 +41,7 @@ export async function getConversationMessages(conversationId: string, limit = 50
     where: { conversationId, deletedAt: null },
     orderBy: { createdAt: 'desc' },
     take: limit,
-    include: {
-      sender: { select: { id: true, username: true, avatarUrl: true } },
-      reactions: { include: { user: { select: { id: true, username: true } } } },
-    },
+    include: messageInclude,
   });
 
   return msgs.map((m) => ({ ...m, reactions: groupReactions(m.reactions) }));

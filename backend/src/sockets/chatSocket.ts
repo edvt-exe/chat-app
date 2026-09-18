@@ -63,14 +63,14 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
     }
   });
 
-  socket.on('message:send', async ({ conversationId, content }, callback) => {
+  socket.on('message:send', async ({ conversationId, content, replyToId }, callback) => {
     if (!content?.trim()) return callback?.({ success: false, error: 'Message cannot be empty' });
 
     const allowed = await isUserInConversation(userId, conversationId);
     if (!allowed) return callback?.({ success: false, error: 'Not a participant' });
 
     try {
-      const message = await saveMessage(userId, { conversationId, content: content.trim() });
+      const message = await saveMessage(userId, { conversationId, content: content.trim(), replyToId });
       io.to(conversationId).emit('message:new', message);
 
       const participants = await prisma.conversationParticipant.findMany({
@@ -91,6 +91,25 @@ export function registerChatHandlers(io: Server, socket: AuthenticatedSocket) {
       callback?.({ success: true, message });
     } catch {
       callback?.({ success: false, error: 'Failed to send message' });
+    }
+  });
+
+  socket.on('message:edit', async ({ messageId, content }, callback) => {
+    if (!content?.trim()) return callback?.({ success: false, error: 'Content cannot be empty' });
+
+    try {
+      const msg = await prisma.message.findUnique({ where: { id: messageId } });
+      if (!msg || msg.senderId !== userId) return callback?.({ success: false, error: 'Unauthorized' });
+
+      const updatedMsg = await prisma.message.update({
+        where: { id: messageId },
+        data: { content: content.trim(), isEdited: true, editedAt: new Date() }
+      });
+
+      io.to(updatedMsg.conversationId).emit('message:edited', { messageId, content: updatedMsg.content, isEdited: true });
+      callback?.({ success: true });
+    } catch (error) {
+      callback?.({ success: false, error: 'Failed to edit message' });
     }
   });
 

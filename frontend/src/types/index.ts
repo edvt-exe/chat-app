@@ -20,9 +20,16 @@ export interface Message {
   createdAt: string;
   editedAt: string | null;
   deletedAt: string | null;
+  isEdited?: boolean;
   sender: Pick<User, 'id' | 'username' | 'avatarUrl'>;
   reactions: Record<string, { userId: string; username: string }[]>;
   seenBy?: string[];
+  replyTo?: {
+    id: string;
+    content: string | null;
+    messageType: string;
+    sender: { username: string };
+  } | null;
 }
 
 export interface Conversation {
